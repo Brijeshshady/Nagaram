@@ -28,13 +28,13 @@ export const ROLE_LABELS = {
 };
 
 export const ROLE_COLORS = {
-  citizen: '#6366f1',
+  citizen: '#4B5563',
   super_admin: '#ef4444',
-  dept_manager: '#f59e0b',
-  supervisor: '#3b82f6',
-  field_worker: '#10b981',
-  commissioner: '#8b5cf6',
-  auditor: '#06b6d4',
+  dept_manager: '#DC2626',
+  supervisor: '#ef4444',
+  field_worker: '#4B5563',
+  commissioner: '#111827',
+  auditor: '#4B5563',
 };
 
 export const STATUS_LABELS = {
@@ -113,6 +113,7 @@ export const NAV_ITEMS = {
     { label: 'Complaints', path: '/complaints', icon: 'HiClipboardList' },
     { label: 'Users', path: '/users', icon: 'HiUsers' },
     { label: 'Departments', path: '/departments', icon: 'HiOfficeBuilding' },
+    { label: 'Wards', path: '/wards', icon: 'HiMap' },
     { label: 'Analytics', path: '/analytics', icon: 'HiChartBar' },
     { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },
     { label: 'Settings', path: '/settings', icon: 'HiCog' },

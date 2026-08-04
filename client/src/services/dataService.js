@@ -36,6 +36,13 @@ export const departmentService = {
   delete: (id) => api.delete(`/departments/${id}`),
 };
 
+export const wardService = {
+  getAll: () => api.get('/wards'),
+  create: (data) => api.post('/wards', data),
+  update: (id, data) => api.patch(`/wards/${id}`, data),
+  delete: (id) => api.delete(`/wards/${id}`),
+};
+
 export const analyticsService = {
   getOverview: () => api.get('/analytics/overview'),
   getByCategory: () => api.get('/analytics/by-category'),

@@ -1,0 +1,141 @@
+/* =============================================
+   Settings Page Styles
+   ============================================= */
+
+.settings {
+  animation: fadeIn var(--transition-base);
+}
+
+.settings__header {
+  margin-bottom: var(--space-xl);
+}
+
+.settings__header h1 {
+  font-size: var(--font-3xl);
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.settings__subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  margin-top: 4px;
+}
+
+.settings__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.settings-card {
+  padding: var(--space-lg);
+}
+
+.settings-card h2 {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.settings-card h2 svg {
+  color: var(--accent-primary-light);
+}
+
+/* Avatar Preview Styles */
+.avatar-upload-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.avatar-preview-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--accent-primary);
+  overflow: hidden;
+}
+
+.avatar-preview-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-upload-photo {
+  padding: 8px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-upload-photo:hover {
+  background: var(--border-color-hover);
+}
+
+.form-help {
+  display: block;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.btn-save {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 10px 18px;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: var(--font-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-top: var(--space-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 1024px) {
+  .settings__grid {
+    grid-template-columns: 1fr;
+  }
+  .span-2 {
+    grid-column: span 1;
+  }
+}

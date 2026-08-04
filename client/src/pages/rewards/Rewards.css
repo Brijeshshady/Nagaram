@@ -1,0 +1,251 @@
+/* =============================================
+   Rewards Dashboard Styles
+   ============================================= */
+
+.rewards {
+  animation: fadeIn var(--transition-base);
+}
+
+.rewards__header {
+  margin-bottom: var(--space-xl);
+}
+
+.rewards__header h1 {
+  font-size: var(--font-3xl);
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.rewards__subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  margin-top: 4px;
+}
+
+.rewards__grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+/* User Score Card */
+.score-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  background: var(--gradient-card);
+}
+
+.score-card__circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid var(--accent-primary-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-glow);
+  flex-shrink: 0;
+}
+
+.score-card__icon {
+  font-size: 1.4rem;
+  color: var(--status-warning);
+}
+
+.score-card__circle h2 {
+  font-size: var(--font-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.score-card__circle span {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.score-card__info {
+  flex: 1;
+}
+
+.score-card__info h3 {
+  font-size: var(--font-md);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.score-card__info p {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.progress-bar-wrapper {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  margin-top: var(--space-md);
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  transition: width 1s ease-in-out;
+}
+
+/* Badges Card */
+.badges-card h2,
+.leaderboard-card h2 {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.badge-item--unlocked {
+  background: #ffffff;
+}
+
+.badge-item--locked {
+  background: var(--bg-tertiary);
+  opacity: 0.65;
+}
+
+.badge-item__icon {
+  font-size: 2.2rem;
+  margin-bottom: var(--space-xs);
+}
+
+.badge-item h4 {
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.badge-item p {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* Leaderboard */
+.leaderboard-desc {
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  margin-top: -12px;
+  margin-bottom: var(--space-lg);
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 10px var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  transition: all var(--transition-fast);
+}
+
+.leaderboard-item--self {
+  border-color: var(--border-accent);
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.leaderboard-rank {
+  font-family: var(--font-mono);
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 32px;
+}
+
+.leaderboard-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--font-sm);
+  color: var(--accent-primary);
+  margin-right: var(--space-md);
+}
+
+.leaderboard-info {
+  flex: 1;
+}
+
+.leaderboard-name {
+  display: block;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.leaderboard-sub {
+  display: block;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+}
+
+.leaderboard-points {
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+@media (max-width: 1024px) {
+  .rewards__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .score-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  .badges-grid {
+    grid-template-columns: 1fr;
+  }
+}

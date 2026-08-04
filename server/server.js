@@ -13,6 +13,7 @@ const userRoutes = require('./routes/user.routes');
 const complaintRoutes = require('./routes/complaint.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
 const departmentRoutes = require('./routes/department.routes');
+const wardRoutes = require('./routes/ward.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const announcementRoutes = require('./routes/announcement.routes');
 
@@ -56,6 +57,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/wards', wardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/announcements', announcementRoutes);
 

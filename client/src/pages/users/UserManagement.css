@@ -47,7 +47,7 @@
 
 .user-mgmt__add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15);
 }
 
 /* Toolbar */
@@ -327,7 +327,7 @@
 .form-group input:focus,
 .form-group select:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .form-grid {
@@ -375,7 +375,7 @@
 
 .btn-submit:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 @media (max-width: 768px) {

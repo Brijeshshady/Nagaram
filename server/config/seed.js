@@ -60,7 +60,7 @@ const seed = async () => {
 
     if (!existingCitizen) {
       await User.create({
-        name: 'Demo Citizen',
+        name: 'Rohan Sharma',
         email: citizenEmail,
         phone: '8888888888',
         password: 'Citizen@123',
@@ -68,11 +68,65 @@ const seed = async () => {
         isActive: true,
         rewardPoints: 120,
       });
-      console.log(`  🔑 Demo Citizen created:`);
-      console.log(`     Email: ${citizenEmail}`);
-      console.log(`     Password: Citizen@123`);
-    } else {
-      console.log(`  ⏭️  Demo Citizen already exists: ${citizenEmail}`);
+      console.log(`  🔑 Demo Citizen created: Rohan Sharma`);
+    }
+
+    // Seed Department-wise Demo Users
+    const depts = await Department.find();
+    
+    const demoStaff = [
+      // Waste Management
+      { name: 'Karan Malhotra', email: 'waste.manager@nagaram.city', role: ROLES.DEPT_MANAGER, deptCode: 'waste_management', password: 'Manager@123' },
+      { name: 'Rajesh Kumar', email: 'waste.supervisor@nagaram.city', role: ROLES.SUPERVISOR, deptCode: 'waste_management', password: 'Supervisor@123' },
+      { name: 'Madan Lal', email: 'waste.worker@nagaram.city', role: ROLES.FIELD_WORKER, deptCode: 'waste_management', password: 'Worker@123' },
+
+      // Roads
+      { name: 'Sunita Rao', email: 'roads.manager@nagaram.city', role: ROLES.DEPT_MANAGER, deptCode: 'roads', password: 'Manager@123' },
+      { name: 'Vikram Singh', email: 'roads.supervisor@nagaram.city', role: ROLES.SUPERVISOR, deptCode: 'roads', password: 'Supervisor@123' },
+      { name: 'Gopal Dutt', email: 'roads.worker@nagaram.city', role: ROLES.FIELD_WORKER, deptCode: 'roads', password: 'Worker@123' },
+
+      // Water Supply
+      { name: 'Alok Gupta', email: 'water.manager@nagaram.city', role: ROLES.DEPT_MANAGER, deptCode: 'water_supply', password: 'Manager@123' },
+      { name: 'Sanjay Dutt', email: 'water.supervisor@nagaram.city', role: ROLES.SUPERVISOR, deptCode: 'water_supply', password: 'Supervisor@123' },
+      { name: 'Ramesh Pal', email: 'water.worker@nagaram.city', role: ROLES.FIELD_WORKER, deptCode: 'water_supply', password: 'Worker@123' },
+
+      // Electrical
+      { name: 'Neha Joshi', email: 'power.manager@nagaram.city', role: ROLES.DEPT_MANAGER, deptCode: 'electrical', password: 'Manager@123' },
+      { name: 'anil sharma', email: 'power.supervisor@nagaram.city', role: ROLES.SUPERVISOR, deptCode: 'electrical', password: 'Supervisor@123' },
+      { name: 'Vijay Ram', email: 'power.worker@nagaram.city', role: ROLES.FIELD_WORKER, deptCode: 'electrical', password: 'Worker@123' },
+    ];
+
+    // Seed Greater Chennai Corporation Wards/Zones
+    const chennaiWards = [
+      { name: 'THIRUVOTRIYUR (Zone I)', number: 1, population: 14 },
+      { name: 'MANALI (Zone II)', number: 2, population: 21 },
+      { name: 'MADHAVARAM (Zone III)', number: 3, population: 33 },
+      { name: 'TONDIARPET (Zone IV)', number: 4, population: 48 },
+      { name: 'ROYAPURAM (Zone V)', number: 5, population: 63 },
+      { name: 'THIRU-VI-KA NAGAR (Zone VI)', number: 6, population: 78 },
+      { name: 'AMBATTUR (Zone VII)', number: 7, population: 93 },
+      { name: 'ANNA NAGAR (Zone VIII)', number: 8, population: 108 },
+      { name: 'TEYNAMPET (Zone IX)', number: 9, population: 126 },
+      { name: 'KODAMBAKKAM (Zone X)', number: 10, population: 142 },
+      { name: 'VALASARAVAKKAM (Zone XI)', number: 11, population: 155 },
+      { name: 'ALANDUR (Zone XII)', number: 12, population: 167 },
+      { name: 'ADYAR (Zone XIII)', number: 13, population: 182 },
+      { name: 'PERUNGUDI (Zone XIV)', number: 14, population: 191 },
+      { name: 'SOZHANGANALLUR (Zone XV)', number: 15, population: 200 },
+    ];
+
+    const Ward = require('../models/Ward');
+    for (const ward of chennaiWards) {
+      const exists = await Ward.findOne({ number: ward.number });
+      if (!exists) {
+        await Ward.create({
+          name: ward.name,
+          number: ward.number,
+          population: ward.population * 1250, // mock scale
+          isActive: true,
+        });
+        console.log(`  🏙️  Chennai Zone seeded: ${ward.name}`);
+      }
     }
 
     console.log('\n✅ Seed complete!\n');

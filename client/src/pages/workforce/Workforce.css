@@ -1,0 +1,140 @@
+/* =============================================
+   Workforce Directory Page Styles
+   ============================================= */
+
+.workforce-page {
+  animation: fadeIn var(--transition-base);
+}
+
+.workforce-page__header {
+  margin-bottom: var(--space-xl);
+}
+
+.workforce-page__header h1 {
+  font-size: var(--font-3xl);
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.workforce-page__subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  margin-top: 4px;
+}
+
+/* Workforce Grid */
+.workforce-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+.staff-card {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 240px;
+}
+
+.staff-card__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.staff-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.staff-card__profile h3 {
+  font-size: var(--font-md);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.staff-role-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  margin-top: 2px;
+}
+
+.staff-card__body {
+  margin-bottom: var(--space-md);
+}
+
+.staff-meta {
+  margin-bottom: var(--space-xs);
+}
+
+.meta-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meta-val {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+.staff-card__footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: var(--space-sm);
+}
+
+.task-count-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.task-count-box__icon {
+  font-size: 1.4rem;
+  color: var(--accent-primary-light);
+}
+
+.task-count-label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.task-count-val {
+  font-size: var(--font-xs);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.workforce-page__loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3xl);
+}
+
+@media (max-width: 768px) {
+  .workforce-grid {
+    grid-template-columns: 1fr;
+  }
+}

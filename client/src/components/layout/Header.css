@@ -144,9 +144,11 @@
   .header__menu-btn {
     display: flex;
   }
+
   .header__search {
     display: none;
   }
+
   .header__greeting h2 {
     font-size: var(--font-md);
   }

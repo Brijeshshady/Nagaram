@@ -51,7 +51,7 @@
 
 .complaint-list-page__add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15);
   color: white;
 }
 
@@ -106,7 +106,7 @@
   background: var(--accent-primary);
   color: white;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 12px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
 }
 
 .step-line {
@@ -145,7 +145,7 @@
 
 .upload-zone:hover {
   border-color: var(--accent-primary-light);
-  background: rgba(79, 70, 229, 0.02);
+  background: rgba(239, 68, 68, 0.02);
 }
 
 .upload-zone__label {
@@ -234,7 +234,7 @@
 
 .btn-primary-gradient:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
   color: white;
 }
 

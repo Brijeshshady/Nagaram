@@ -107,7 +107,7 @@ const complaintSchema = new mongoose.Schema(
 );
 
 // Auto-generate complaint ID before saving
-complaintSchema.pre('save', async function (next) {
+complaintSchema.pre('save', async function () {
   if (!this.complaintId) {
     const year = new Date().getFullYear();
     const count = await mongoose.model('Complaint').countDocuments();
@@ -123,8 +123,6 @@ complaintSchema.pre('save', async function (next) {
       note: this._statusNote || '',
     });
   }
-
-  next();
 });
 
 // Index for geo queries

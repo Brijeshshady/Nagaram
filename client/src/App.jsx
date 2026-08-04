@@ -22,6 +22,25 @@ import ReportComplaint from './pages/complaints/ReportComplaint';
 import ComplaintList from './pages/complaints/ComplaintList';
 import ComplaintDetail from './pages/complaints/ComplaintDetail';
 
+// Analytics
+import Analytics from './pages/analytics/Analytics';
+
+// Departments
+import Departments from './pages/departments/Departments';
+
+// Wards
+import Wards from './pages/wards/Wards';
+
+// Workforce
+import Workforce from './pages/workforce/Workforce';
+
+// Announcements & Rewards
+import Announcements from './pages/announcements/Announcements';
+import Rewards from './pages/rewards/Rewards';
+
+// Settings
+import Settings from './pages/settings/Settings';
+
 // Shared
 import { NotFound, Unauthorized } from './pages/shared/ErrorPages';
 
@@ -50,26 +69,26 @@ function App() {
             <Route path="/complaints/new" element={<RoleGuard roles={[ROLES.CITIZEN]}><ReportComplaint /></RoleGuard>} />
             <Route path="/complaints/:id" element={<ComplaintDetail />} />
 
-            {/* Users (Super Admin only) */}
-            {/* TODO: Phase 2 - User management pages */}
+            {/* Analytics (Admin & Manager roles) */}
+            <Route path="/analytics" element={<RoleGuard roles={[ROLES.SUPER_ADMIN, ROLES.DEPT_MANAGER, ROLES.COMMISSIONER]}><Analytics /></RoleGuard>} />
 
-            {/* Departments (Super Admin) */}
-            {/* TODO: Phase 5 - Department pages */}
+            {/* Departments (Super Admin only) */}
+            <Route path="/departments" element={<RoleGuard roles={[ROLES.SUPER_ADMIN]}><Departments /></RoleGuard>} />
 
-            {/* Analytics (Admin roles) */}
-            {/* TODO: Phase 4 - Analytics pages */}
+            {/* Wards (Super Admin only) */}
+            <Route path="/wards" element={<RoleGuard roles={[ROLES.SUPER_ADMIN]}><Wards /></RoleGuard>} />
 
-            {/* Announcements (all roles view, admin creates) */}
-            {/* TODO: Phase 6 - Announcement pages */}
+            {/* Announcements */}
+            <Route path="/announcements" element={<Announcements />} />
 
-            {/* Rewards (Citizen) */}
-            {/* TODO: Phase 6 - Rewards pages */}
+            {/* Rewards (Citizen only) */}
+            <Route path="/rewards" element={<RoleGuard roles={[ROLES.CITIZEN]}><Rewards /></RoleGuard>} />
 
-            {/* Settings (Admin) */}
-            {/* TODO: Phase 7 - Settings pages */}
+            {/* Settings (All authenticated users) */}
+            <Route path="/settings" element={<Settings />} />
 
             {/* Workforce */}
-            {/* TODO: Phase 5 - Workforce pages */}
+            <Route path="/workforce" element={<RoleGuard roles={[ROLES.SUPER_ADMIN, ROLES.DEPT_MANAGER, ROLES.SUPERVISOR]}><Workforce /></RoleGuard>} />
           </Route>
 
           {/* Error pages */}

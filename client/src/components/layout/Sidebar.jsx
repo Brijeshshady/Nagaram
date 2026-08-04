@@ -64,7 +64,11 @@ const Sidebar = ({ collapsed, onToggle }) => {
       <div className="sidebar__footer">
         <div className="sidebar__user">
           <div className="sidebar__avatar" style={{ borderColor: ROLE_COLORS[user?.role] || '#6366f1' }}>
-            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+            {user?.avatar ? (
+              <img src={`http://localhost:5000${user.avatar}`} alt="User Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : (
+              user?.name?.charAt(0)?.toUpperCase() || 'U'
+            )}
           </div>
           {!collapsed && (
             <div className="sidebar__user-info">
