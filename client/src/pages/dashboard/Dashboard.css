@@ -1,0 +1,169 @@
+/* =============================================
+   Dashboard Styles
+   ============================================= */
+
+.dashboard {
+  animation: fadeIn var(--transition-base);
+}
+
+.dashboard-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.dashboard__header {
+  margin-bottom: var(--space-xl);
+}
+
+.dashboard__header h1 {
+  font-size: var(--font-3xl);
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard__date {
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+  margin-top: 4px;
+}
+
+/* KPI Cards */
+.dashboard__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-2xl);
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  cursor: default;
+}
+
+.kpi-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.kpi-card__value {
+  font-size: var(--font-2xl);
+  font-weight: 800;
+  line-height: 1;
+  animation: countUp var(--transition-slow) forwards;
+}
+
+.kpi-card__label {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Section */
+.dashboard__section {
+  margin-bottom: var(--space-2xl);
+}
+
+.dashboard__section-title {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  color: var(--text-primary);
+}
+
+/* Complaint Cards */
+.dashboard__complaints-list {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.complaint-card {
+  padding: var(--space-lg);
+  cursor: pointer;
+}
+
+.complaint-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.complaint-card__id {
+  font-family: var(--font-mono);
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+}
+
+.complaint-card__status {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.complaint-card__title {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.complaint-card__desc {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+  line-height: 1.5;
+}
+
+.complaint-card__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+}
+
+.complaint-card__category {
+  text-transform: capitalize;
+}
+
+.complaint-card__priority {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Empty State */
+.dashboard__empty {
+  text-align: center;
+  padding: var(--space-3xl);
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .dashboard__kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard__kpis {
+    grid-template-columns: 1fr;
+  }
+}
