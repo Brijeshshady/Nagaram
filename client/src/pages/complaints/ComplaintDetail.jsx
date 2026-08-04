@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import { complaintService, userService } from '../../services/dataService';
 import { useAuth } from '../../context/AuthContext';
 import { ROLES, STATUS_LABELS, STATUS_COLORS, PRIORITY_COLORS, PRIORITY_LABELS, CATEGORY_ICONS, formatDateTime } from '../../utils/constants';
-import { HiArrowLeft, HiCalendar, HiMapPin, HiUser, HiOfficeBuilding, HiSparkles } from 'react-icons/hi2';
+import { HiArrowLeft, HiCalendar, HiMapPin, HiUser, HiBuildingOffice, HiSparkles } from 'react-icons/hi2';
 import { toast } from 'react-hot-toast';
 import './Complaints.css';
 
@@ -148,7 +148,7 @@ const ComplaintDetail = () => {
                 </div>
               </div>
               <div className="meta-item">
-                <HiOfficeBuilding className="meta-item__icon" />
+                <HiBuildingOffice className="meta-item__icon" />
                 <div>
                   <p className="meta-item__label">Routing Department</p>
                   <p className="meta-item__val">{complaint.assignedDepartment?.name || 'Pending routing'}</p>
