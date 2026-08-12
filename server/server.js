@@ -16,6 +16,8 @@ const departmentRoutes = require('./routes/department.routes');
 const wardRoutes = require('./routes/ward.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const announcementRoutes = require('./routes/announcement.routes');
+const dustbinRoutes = require('./routes/dustbin.routes');
+const routeRoutes = require('./routes/route.routes');
 
 const app = express();
 
@@ -60,6 +62,8 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/wards', wardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/dustbins', dustbinRoutes);
+app.use('/api/routes', routeRoutes);
 
 // =============================================
 // Error Handling
@@ -76,10 +80,13 @@ app.use((req, res) => {
 // Start Server
 // =============================================
 
+const seed = require('./config/seed');
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB();
+  await seed();
   app.listen(PORT, () => {
     console.log(`\n🏙️  NAGARAM Server running on port ${PORT}`);
     console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);

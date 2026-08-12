@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polygon, useMapEvents } from 'react-leaflet';
 import { complaintService } from '../../services/dataService';
+import api from '../../services/api';
 import { CATEGORY_LABELS, CATEGORY_ICONS } from '../../utils/constants';
 import { HiCamera, HiMap, HiDocumentText, HiArrowRight, HiArrowLeft, HiCheckCircle } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
@@ -32,6 +33,11 @@ const ReportComplaint = () => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('others');
 
+  // Ward detection state
+  const [detectedWard, setDetectedWard] = useState(null);
+  const [detectedCouncillor, setDetectedCouncillor] = useState(null);
+  const [wardLoading, setWardLoading] = useState(false);
+
   // Trigger geolocation on mount
   useEffect(() => {
     if (navigator.geolocation) {
@@ -49,6 +55,27 @@ const ReportComplaint = () => {
       reverseGeocode(12.9716, 77.5946);
     }
   }, []);
+
+  // Detect ward whenever GPS changes
+  const detectWard = useCallback(async (lat, lng) => {
+    setWardLoading(true);
+    try {
+      const res = await api.get(`/wards/locate?lat=${lat}&lng=${lng}`);
+      setDetectedWard(res.data.ward || null);
+      setDetectedCouncillor(res.data.councillor || null);
+    } catch {
+      setDetectedWard(null);
+      setDetectedCouncillor(null);
+    } finally {
+      setWardLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (gpsCoordinates.lat && gpsCoordinates.lng) {
+      detectWard(gpsCoordinates.lat, gpsCoordinates.lng);
+    }
+  }, [gpsCoordinates, detectWard]);
 
   // Free OpenStreetMap Nominatim reverse geocoder
   const reverseGeocode = async (lat, lng) => {
@@ -216,6 +243,19 @@ const ReportComplaint = () => {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
+                {/* Ward boundary polygon overlay */}
+                {detectedWard?.boundaries?.coordinates?.length > 0 && (
+                  <Polygon
+                    positions={detectedWard.boundaries.coordinates[0].map(([lng, lat]) => [lat, lng])}
+                    pathOptions={{
+                      color: '#EF4444',
+                      fillColor: '#EF4444',
+                      fillOpacity: 0.08,
+                      weight: 2,
+                      dashArray: '5 5',
+                    }}
+                  />
+                )}
                 <Marker position={[gpsCoordinates.lat, gpsCoordinates.lng]} />
                 <MapEvents />
               </MapContainer>
@@ -224,6 +264,37 @@ const ReportComplaint = () => {
             <div className="address-display">
               <p className="address-display__label">Captured Address</p>
               <p className="address-display__text">{address}</p>
+            </div>
+
+            {/* Ward Detection Card */}
+            <div className="ward-detection-card">
+              {wardLoading ? (
+                <div className="ward-detection-card__loading">
+                  <span className="auth-spinner" /> Detecting ward from location…
+                </div>
+              ) : detectedWard ? (
+                <div className="ward-detection-card__found">
+                  <div className="ward-detection-card__ward">
+                    <span className="ward-detection-badge">🗺️ Ward {detectedWard.number}</span>
+                    <span className="ward-detection-name">{detectedWard.name}</span>
+                  </div>
+                  {detectedCouncillor ? (
+                    <div className="ward-detection-card__councillor">
+                      <span className="councillor-label">👤 Ward Councillor</span>
+                      <strong className="councillor-name">{detectedCouncillor.name}</strong>
+                      {detectedCouncillor.phone && (
+                        <span className="councillor-phone">📞 {detectedCouncillor.phone}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="ward-detection-card__no-councillor">No councillor assigned yet</span>
+                  )}
+                </div>
+              ) : (
+                <div className="ward-detection-card__none">
+                  ⚠️ Location is outside all ward boundaries. Please refine your pin.
+                </div>
+              )}
             </div>
 
             <div className="step-actions justify-between">

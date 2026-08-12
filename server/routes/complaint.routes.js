@@ -8,6 +8,7 @@ const {
   verifyComplaint,
   submitFeedback,
   escalateComplaint,
+  getDailyUpdates,
 } = require('../controllers/complaintController');
 const auth = require('../middleware/auth');
 const { rbac, roleOnly } = require('../middleware/rbac');
@@ -27,6 +28,9 @@ router.post('/', rbac(PERMISSIONS.CREATE_COMPLAINT), (req, res, next) => {
 
 // List complaints (role-filtered in controller)
 router.get('/', getComplaints);
+
+// Daily Updates (Admins & Dept Managers)
+router.get('/daily-updates', rbac(PERMISSIONS.ASSIGN_COMPLAINT), getDailyUpdates);
 
 // Get complaint by ID
 router.get('/:id', getComplaintById);

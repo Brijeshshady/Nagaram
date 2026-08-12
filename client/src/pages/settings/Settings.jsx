@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/dataService';
 import api from '../../services/api';
@@ -11,6 +12,8 @@ const Settings = () => {
   const { user } = useAuth();
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar ? `http://localhost:5000${user.avatar}` : '');
+  const [myWard, setMyWard] = useState(null);
+  const [showMyWardMapModal, setShowMyWardMapModal] = useState(false);
 
   // Profile Form State
   const [profileForm, setProfileForm] = useState({
@@ -123,8 +126,22 @@ const Settings = () => {
                   Change Photo
                 </label>
               </div>
-            </div>
-
+            {user?.ward && (
+              <div className="form-group">
+                <button className="btn-map" onClick={async () => {
+                  try {
+                    const res = await fetch(`http://localhost:5000/api/wards/${user.ward._id}`);
+                    const data = await res.json();
+                    setMyWard(data.ward);
+                    setShowMyWardMapModal(true);
+                  } catch (e) {
+                    console.error('Failed to load ward data', e);
+                  }
+                }}>View My Ward Map</button>
+              </div>
+            )}
+          </div>
+        
             <div className="form-group">
               <label>Full Name</label>
               <input
@@ -143,6 +160,53 @@ const Settings = () => {
               />
               <span className="form-help">Email address cannot be changed.</span>
             </div>
+            <div className="form-group">
+              <label>System Role</label>
+              <input
+                type="text"
+                value={ROLE_LABELS[user?.role] || user?.role || ''}
+                disabled
+              />
+            </div>
+            {user?.department && (
+              <div className="form-group">
+                <label>Mapped Department</label>
+                <input
+                  type="text"
+                  value={user.department.name || ''}
+                  disabled
+                />
+              </div>
+            )}
+            {/* Modal */}
+        {showMyWardMapModal && (
+          <div className="modal-overlay" onClick={() => setShowMyWardMapModal(false)}>
+            <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Ward Map</h2>
+                <button className="modal-close" onClick={() => setShowMyWardMapModal(false)}><HiX /></button>
+              </div>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {myWard && (
+                  <MapContainer center={[20, 78]} zoom={13} style={{ height: '400px', width: '100%' }}>
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <GeoJSON data={myWard.boundary} />
+                  </MapContainer>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+            {user?.ward && (
+              <div className="form-group">
+                <label>Mapped Ward Area</label>
+                <input
+                  type="text"
+                  value={`${user.ward.name} (Ward ${user.ward.number})`}
+                  disabled
+                />
+              </div>
+            )}
             <div className="form-group">
               <label>Phone Number</label>
               <input

@@ -220,6 +220,14 @@
   transition: all var(--transition-fast);
 }
 
+.action-btn--edit {
+  color: var(--status-info);
+}
+
+.action-btn--edit:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
 .action-btn--deactivate {
   color: var(--text-muted);
 }
@@ -254,6 +262,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-md);
+  outline: none !important;
 }
 
 .modal-card {
@@ -264,6 +273,7 @@
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-color);
   overflow: hidden;
+  outline: none !important;
 }
 
 .modal-header {
@@ -383,9 +393,11 @@
     flex-direction: column;
     align-items: stretch;
   }
+
   .search-bar {
     width: 100%;
   }
+
   .form-grid {
     grid-template-columns: 1fr;
     gap: 0;

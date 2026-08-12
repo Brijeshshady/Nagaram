@@ -14,6 +14,11 @@ const getUsers = async (req, res, next) => {
     if (ward) filter.ward = ward;
     if (isActive !== undefined) filter.isActive = isActive === 'true';
 
+    // Enforce department isolation for Department Managers
+    if (req.user.role === ROLES.DEPT_MANAGER && req.user.department) {
+      filter.department = req.user.department;
+    }
+
     const users = await User.find(filter)
       .select('-password')
       .populate('department', 'name code')

@@ -12,6 +12,7 @@ export const complaintService = {
   }),
   getAll: (params) => api.get('/complaints', { params }),
   getById: (id) => api.get(`/complaints/${id}`),
+  getDailyUpdates: () => api.get('/complaints/daily-updates'),
   assign: (id, data) => api.patch(`/complaints/${id}/assign`, data),
   updateStatus: (id, data) => api.patch(`/complaints/${id}/status`, data),
   verify: (id, formData) => api.patch(`/complaints/${id}/verify`, formData, {
@@ -44,10 +45,23 @@ export const wardService = {
 };
 
 export const analyticsService = {
-  getOverview: () => api.get('/analytics/overview'),
-  getByCategory: () => api.get('/analytics/by-category'),
-  getTrends: (days) => api.get('/analytics/trends', { params: { days } }),
-  getDepartment: (id) => api.get(`/analytics/department/${id}`),
+  getOverview: (params) => api.get('/analytics/overview', { params }),
+  getByCategory: (params) => api.get('/analytics/by-category', { params }),
+  getTrends: (days = 7) => api.get('/analytics/trends', { params: { days } }),
+  getHeatmap: () => api.get('/analytics/heatmap'),
+};
+
+export const dustbinService = {
+  getAll: (params) => api.get('/dustbins', { params }),
+  create: (data) => api.post('/dustbins', data),
+  update: (id, data) => api.patch(`/dustbins/${id}`, data),
+  remove: (id) => api.delete(`/dustbins/${id}`),
+};
+
+export const routeService = {
+  getRoute: (params) => api.get('/routes', { params }),
+  assignRoute: (data) => api.post('/routes/assign', data),
+  autoCalculate: (data) => api.post('/routes/auto-calculate', data),
 };
 
 export const notificationService = {

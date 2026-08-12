@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { departmentService, userService } from '../../services/dataService';
 import { ROLES } from '../../utils/constants';
 import { HiPlus, HiPencil, HiTrash, HiX } from 'react-icons/hi';
@@ -11,6 +11,7 @@ const Departments = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [selectedDeptStaff, setSelectedDeptStaff] = useState(null);
 
   // Form State
   const [form, setForm] = useState({
@@ -20,12 +21,7 @@ const Departments = () => {
     managerId: '',
   });
 
-  useEffect(() => {
-    fetchDepartments();
-    fetchManagers();
-  }, []);
-
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     try {
       const res = await departmentService.getAll();
       setDepartments(res.data.departments || []);
@@ -34,16 +30,21 @@ const Departments = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchManagers = async () => {
+  const fetchManagers = useCallback(async () => {
     try {
       const res = await userService.getAll({ role: ROLES.DEPT_MANAGER });
       setManagers(res.data.users || []);
     } catch {
       console.error('Failed to load managers');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchDepartments();
+    fetchManagers();
+  }, [fetchDepartments, fetchManagers]);
 
   const handleInputChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -96,7 +97,7 @@ const Departments = () => {
       <div className="departments-page__header">
         <div>
           <h1>Department Configurations</h1>
-          <p className="departments-page__subtitle">Configure routing domains, SLA weights, and manager delegations</p>
+          <p className="departments-page__subtitle">Configure routing domains, SLA weights, and connected municipal workforce</p>
         </div>
         <button className="departments-page__add-btn" onClick={() => { setEditingId(null); setShowModal(true); }}>
           <HiPlus /> Add Department
@@ -123,13 +124,73 @@ const Departments = () => {
                   )}
                 </div>
               </div>
+
               <p className="dept-card__desc">{d.description || 'No description provided.'}</p>
+
+              {/* Connected Personnel Pill Metrics */}
+              <div className="dept-card__staff-summary">
+                <span className="staff-pill staff-pill--total">
+                  👥 {d.totalStaff || 0} Total Personnel
+                </span>
+                <span className="staff-pill staff-pill--sup">
+                  👔 {d.supervisorsCount || 0} Supervisors
+                </span>
+                <span className="staff-pill staff-pill--work">
+                  🚜 {d.workersCount || 0} Field Workers
+                </span>
+              </div>
+
               <div className="dept-card__footer">
-                <span className="manager-label">Assigned Manager</span>
-                <p className="manager-name">{d.managerId?.name || 'Unassigned'}</p>
+                <div>
+                  <span className="manager-label">Assigned Manager</span>
+                  <p className="manager-name">{d.managerId?.name || 'Unassigned'}</p>
+                </div>
+
+                {d.connectedPersonnel && d.connectedPersonnel.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn-view-roster"
+                    onClick={() => setSelectedDeptStaff(d)}
+                  >
+                    View Roster →
+                  </button>
+                )}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Staff Roster Modal */}
+      {selectedDeptStaff && (
+        <div className="modal-overlay">
+          <div className="modal-card animate-scale-in">
+            <div className="modal-header">
+              <h2>👥 Connected Roster — {selectedDeptStaff.name}</h2>
+              <button className="modal-close" onClick={() => setSelectedDeptStaff(null)}><HiX /></button>
+            </div>
+            <div style={{ padding: '20px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                All supervisors and field workers connected to <b>{selectedDeptStaff.name}</b>:
+              </p>
+              <div className="roster-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                {selectedDeptStaff.connectedPersonnel.map((p) => (
+                  <div key={p._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <div>
+                      <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>{p.name}</span>
+                      <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>{p.email} • {p.phone || 'No phone'}</p>
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-primary)', textTransform: 'capitalize' }}>
+                      {p.role.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                <button type="button" className="btn-cancel" onClick={() => setSelectedDeptStaff(null)}>Close</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

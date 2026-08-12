@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
-import { userService, departmentService } from '../../services/dataService';
+import { useState, useEffect, useCallback } from 'react';
+import { userService, departmentService, wardService } from '../../services/dataService';
 import { ROLES, ROLE_LABELS, ROLE_COLORS } from '../../utils/constants';
-import { HiUserAdd, HiFilter, HiSearch, HiCheck, HiX } from 'react-icons/hi';
+import { HiUserAdd, HiFilter, HiSearch, HiCheck, HiX, HiPencil } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import './UserManagement.css';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
-  // Form State
+  // Form State for Create
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -22,6 +24,16 @@ const UserManagement = () => {
     ward: '',
   });
 
+  // Edit Form State
+  const [editForm, setEditForm] = useState({
+    name: '',
+    phone: '',
+    role: ROLES.CITIZEN,
+    department: '',
+    ward: '',
+    isActive: true,
+  });
+
   // Filters State
   const [filters, setFilters] = useState({
     role: '',
@@ -29,12 +41,7 @@ const UserManagement = () => {
     search: '',
   });
 
-  useEffect(() => {
-    fetchUsers();
-    fetchDepartments();
-  }, [filters.role, filters.isActive]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const params = {
         role: filters.role || undefined,
@@ -42,24 +49,56 @@ const UserManagement = () => {
       };
       const res = await userService.getAll(params);
       setUsers(res.data.users || []);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load users');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.role, filters.isActive]);
 
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     try {
       const res = await departmentService.getAll();
       setDepartments(res.data.departments || []);
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
+
+  const fetchWards = useCallback(async () => {
+    try {
+      const res = await wardService.getAll();
+      setWards(res.data.wards || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+    fetchDepartments();
+    fetchWards();
+  }, [fetchUsers, fetchDepartments, fetchWards]);
 
   const handleInputChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleEditInputChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setEditForm({ ...editForm, [e.target.name]: value });
+  };
+
+  const openEditModal = (user) => {
+    setEditingUser(user);
+    setEditForm({
+      name: user.name,
+      phone: user.phone || '',
+      role: user.role,
+      department: user.department?._id || user.department || '',
+      ward: user.ward?._id || user.ward || '',
+      isActive: user.isActive,
+    });
   };
 
   const handleCreateUser = async (e) => {
@@ -87,12 +126,25 @@ const UserManagement = () => {
     }
   };
 
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    try {
+      await userService.update(editingUser._id, editForm);
+      toast.success('User details updated');
+      setEditingUser(null);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update user');
+    }
+  };
+
   const toggleUserStatus = async (id, currentStatus) => {
     try {
       await userService.update(id, { isActive: !currentStatus });
       toast.success(`User ${currentStatus ? 'deactivated' : 'activated'} successfully`);
       fetchUsers();
-    } catch (err) {
+    } catch {
       toast.error('Failed to update user status');
     }
   };
@@ -110,8 +162,8 @@ const UserManagement = () => {
     <div className="user-mgmt animate-fade-in">
       <div className="user-mgmt__header">
         <div>
-          <h1>User Management</h1>
-          <p className="user-mgmt__subtitle">Manage city personnel, officials, and system actors</p>
+          <h1>User Management & Moderation</h1>
+          <p className="user-mgmt__subtitle">Manage city personnel, roles, department assignments, and account access</p>
         </div>
         <button className="user-mgmt__add-btn" onClick={() => setShowAddModal(true)}>
           <HiUserAdd /> Add Personnel
@@ -170,6 +222,7 @@ const UserManagement = () => {
                 <th>Name</th>
                 <th>Role</th>
                 <th>Department</th>
+                <th>Ward</th>
                 <th>Phone</th>
                 <th>Status</th>
                 <th>Joined</th>
@@ -197,6 +250,7 @@ const UserManagement = () => {
                       </span>
                     </td>
                     <td>{u.department?.name || '—'}</td>
+                    <td>{u.ward ? `${u.ward.name} (${u.ward.number})` : '—'}</td>
                     <td>{u.phone || '—'}</td>
                     <td>
                       <span className={`status-dot ${u.isActive ? 'status-dot--active' : 'status-dot--inactive'}`}>
@@ -205,19 +259,28 @@ const UserManagement = () => {
                     </td>
                     <td>{new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
                     <td>
-                      <button
-                        className={`action-btn ${u.isActive ? 'action-btn--deactivate' : 'action-btn--activate'}`}
-                        onClick={() => toggleUserStatus(u._id, u.isActive)}
-                        title={u.isActive ? 'Deactivate Account' : 'Activate Account'}
-                      >
-                        {u.isActive ? <HiX /> : <HiCheck />}
-                      </button>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          className="action-btn action-btn--edit"
+                          onClick={() => openEditModal(u)}
+                          title="Edit User & Roles"
+                        >
+                          <HiPencil />
+                        </button>
+                        <button
+                          className={`action-btn ${u.isActive ? 'action-btn--deactivate' : 'action-btn--activate'}`}
+                          onClick={() => toggleUserStatus(u._id, u.isActive)}
+                          title={u.isActive ? 'Deactivate Account' : 'Activate Account'}
+                        >
+                          {u.isActive ? <HiX /> : <HiCheck />}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="user-mgmt__empty">
+                  <td colSpan="8" className="user-mgmt__empty">
                     No personnel found matching filters.
                   </td>
                 </tr>
@@ -227,63 +290,143 @@ const UserManagement = () => {
         </div>
       )}
 
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="modal-overlay" onClick={() => setEditingUser(null)}>
+          <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Moderate & Edit User ({editingUser.email})</h2>
+              <button className="modal-close" onClick={() => setEditingUser(null)}><HiX /></button>
+            </div>
+            <form onSubmit={handleUpdateUser}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Full Name</label>
+                  <input type="text" name="name" value={editForm.name} onChange={handleEditInputChange} required />
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" value={editForm.phone} onChange={handleEditInputChange} />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Assign Role</label>
+                    <select name="role" value={editForm.role} onChange={handleEditInputChange} required>
+                      {Object.entries(ROLE_LABELS).map(([key, val]) => (
+                        <option key={key} value={key}>{val}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Department Assignment</label>
+                    <select name="department" value={editForm.department} onChange={handleEditInputChange}>
+                      <option value="">No Department</option>
+                      {departments.map((d) => (
+                        <option key={d._id} value={d._id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Ward Assignment</label>
+                    <select name="ward" value={editForm.ward} onChange={handleEditInputChange}>
+                      <option value="">No Ward</option>
+                      {wards.map((w) => (
+                        <option key={w._id} value={w._id}>{w.name} (Ward {w.number})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', marginBottom: 0 }}>
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    name="isActive"
+                    checked={editForm.isActive}
+                    onChange={handleEditInputChange}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="isActive" style={{ margin: 0, cursor: 'pointer' }}>Active Account Access</label>
+                </div>
+              </div>
+
+              <div className="modal-actions" style={{ marginTop: 0 }}>
+                <button type="button" className="btn-cancel" onClick={() => setEditingUser(null)}>Cancel</button>
+                <button type="submit" className="btn-submit">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Add User Modal */}
       {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-card animate-scale-in">
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Add Municipal Personnel</h2>
               <button className="modal-close" onClick={() => setShowAddModal(false)}><HiX /></button>
             </div>
             <form onSubmit={handleCreateUser}>
-              <div className="form-group">
-                <label>Full Name</label>
-                <input type="text" name="name" value={form.name} onChange={handleInputChange} required placeholder="e.g. Sanjay Verma" />
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Full Name</label>
+                  <input type="text" name="name" value={form.name} onChange={handleInputChange} required placeholder="e.g. Sanjay Verma" />
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Email Address</label>
+                    <input type="email" name="email" value={form.email} onChange={handleInputChange} required placeholder="sanjay@nagaram.city" />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" value={form.phone} onChange={handleInputChange} placeholder="10-digit number" />
+                  </div>
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Password</label>
+                    <input type="password" name="password" value={form.password} onChange={handleInputChange} required placeholder="••••••••" />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Role</label>
+                    <select name="role" value={form.role} onChange={handleInputChange} required>
+                      {Object.entries(ROLE_LABELS).map(([key, val]) => (
+                        <option key={key} value={key}>{val}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Department Assignment</label>
+                    <select name="department" value={form.department} onChange={handleInputChange}>
+                      <option value="">No Department</option>
+                      {departments.map((d) => (
+                        <option key={d._id} value={d._id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Ward Assignment (Optional)</label>
+                    <select name="ward" value={form.ward} onChange={handleInputChange}>
+                      <option value="">No Ward</option>
+                      {wards.map((w) => (
+                        <option key={w._id} value={w._id}>{w.name} (Ward {w.number})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input type="email" name="email" value={form.email} onChange={handleInputChange} required placeholder="sanjay@nagaram.city" />
-                </div>
-                <div className="form-group">
-                  <label>Phone Number</label>
-                  <input type="tel" name="phone" value={form.phone} onChange={handleInputChange} placeholder="10-digit number" />
-                </div>
-              </div>
-
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Password</label>
-                  <input type="password" name="password" value={form.password} onChange={handleInputChange} required placeholder="••••••••" />
-                </div>
-                <div className="form-group">
-                  <label>Role</label>
-                  <select name="role" value={form.role} onChange={handleInputChange} required>
-                    {Object.entries(ROLE_LABELS).map(([key, val]) => (
-                      <option key={key} value={key}>{val}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Department Assignment</label>
-                  <select name="department" value={form.department} onChange={handleInputChange}>
-                    <option value="">No Department</option>
-                    {departments.map((d) => (
-                      <option key={d._id} value={d._id}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Ward (Optional)</label>
-                  <input type="number" name="ward" value={form.ward} onChange={handleInputChange} placeholder="Ward number" />
-                </div>
-              </div>
-
-              <div className="modal-actions">
+              <div className="modal-actions" style={{ marginTop: 0 }}>
                 <button type="button" className="btn-cancel" onClick={() => setShowAddModal(false)}>Cancel</button>
                 <button type="submit" className="btn-submit">Add User</button>
               </div>

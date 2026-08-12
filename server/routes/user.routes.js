@@ -25,13 +25,14 @@ router.patch('/profile/avatar', auth, (req, res, next) => {
   }
 });
 
-// All other routes require auth + Super Admin role
-router.use(auth, roleOnly(ROLES.SUPER_ADMIN));
+// All other routes require auth
+router.use(auth);
 
-router.get('/', getUsers);
-router.post('/', createUser);
-router.get('/:id', getUserById);
-router.patch('/:id', updateUser);
-router.delete('/:id', deleteUser);
+// Dept Managers can get users (to assign supervisors), but only Super Admin can create/update/delete
+router.get('/', roleOnly(ROLES.SUPER_ADMIN, ROLES.DEPT_MANAGER), getUsers);
+router.post('/', roleOnly(ROLES.SUPER_ADMIN), createUser);
+router.get('/:id', roleOnly(ROLES.SUPER_ADMIN, ROLES.DEPT_MANAGER), getUserById);
+router.patch('/:id', roleOnly(ROLES.SUPER_ADMIN), updateUser);
+router.delete('/:id', roleOnly(ROLES.SUPER_ADMIN), deleteUser);
 
 module.exports = router;

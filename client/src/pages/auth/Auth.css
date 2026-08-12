@@ -295,6 +295,33 @@
   color: var(--text-primary);
 }
 
+.auth-quick-chips {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.auth-chip {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: var(--accent-primary);
+  padding: 5px 10px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.auth-chip:hover {
+  background: var(--gradient-primary);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 480px) {
   .auth-container {
     padding: var(--space-xl);

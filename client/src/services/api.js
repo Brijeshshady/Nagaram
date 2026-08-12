@@ -28,7 +28,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('nagaram_token');
       localStorage.removeItem('nagaram_user');
-      window.location.href = '/login';
+      if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

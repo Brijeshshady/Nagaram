@@ -1,0 +1,14 @@
+{
+  "name": "nagaram-root",
+  "version": "1.0.0",
+  "description": "NAGARAM - AI-Powered Smart City Platform Root Runner",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "start": "concurrently \"npm run start --prefix server\" \"npm run dev --prefix client\"",
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "seed": "npm run seed --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

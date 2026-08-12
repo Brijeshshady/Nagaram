@@ -13,6 +13,7 @@ export const ROLES = {
   EMERGENCY_OFFICER: 'emergency_officer',
   AUDITOR: 'auditor',
   SYSTEM_ADMIN: 'system_admin',
+  WARD_COUNCILLOR: 'ward_councillor',
 };
 
 export const ROLE_LABELS = {
@@ -25,6 +26,7 @@ export const ROLE_LABELS = {
   emergency_officer: 'Emergency Response Officer',
   auditor: 'Auditor / Quality Inspector',
   system_admin: 'System Administrator',
+  ward_councillor: 'Ward Councillor',
 };
 
 export const ROLE_COLORS = {
@@ -35,6 +37,7 @@ export const ROLE_COLORS = {
   field_worker: '#4B5563',
   commissioner: '#111827',
   auditor: '#4B5563',
+  ward_councillor: '#F59E0B',
 };
 
 export const STATUS_LABELS = {
@@ -134,6 +137,12 @@ export const NAV_ITEMS = {
   [ROLES.FIELD_WORKER]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'HiHome' },
     { label: 'My Tasks', path: '/complaints', icon: 'HiClipboardList' },
+    { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },
+  ],
+  [ROLES.WARD_COUNCILLOR]: [
+    { label: 'Dashboard', path: '/dashboard', icon: 'HiHome' },
+    { label: 'Complaints', path: '/complaints', icon: 'HiClipboardList' },
+    { label: 'Wards', path: '/wards', icon: 'HiMap' },
     { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },
   ],
 };

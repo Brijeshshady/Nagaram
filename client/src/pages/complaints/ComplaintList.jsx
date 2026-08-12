@@ -1,16 +1,77 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { complaintService } from '../../services/dataService';
+import { MapContainer, TileLayer, Polygon, CircleMarker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import { complaintService, wardService } from '../../services/dataService';
 import { useAuth } from '../../context/AuthContext';
-import { ROLES, STATUS_LABELS, STATUS_COLORS, PRIORITY_LABELS, PRIORITY_COLORS, CATEGORY_ICONS, formatDate, timeAgo } from '../../utils/constants';
-import { HiSearch, HiFilter, HiPlus } from 'react-icons/hi';
+import { ROLES, STATUS_LABELS, STATUS_COLORS, PRIORITY_LABELS, PRIORITY_COLORS, CATEGORY_ICONS, timeAgo } from '../../utils/constants';
+import { HiSearch, HiFilter, HiPlus, HiMap, HiChevronDown, HiChevronUp } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import './Complaints.css';
+
+// Status → marker color mapping
+const STATUS_MARKER = {
+  submitted: '#EF4444',
+  under_review: '#F59E0B',
+  in_progress: '#3B82F6',
+  resolved: '#10B981',
+  closed: '#6B7280',
+  rejected: '#991B1B',
+};
+
+// Auto-fit map to ward bounds
+const FitWards = ({ wards }) => {
+  const map = useMap();
+  useEffect(() => {
+    const allCoords = [];
+    wards.forEach(w => {
+      if (w.boundaries?.coordinates?.[0]) {
+        w.boundaries.coordinates[0].forEach(([lng, lat]) => allCoords.push([lat, lng]));
+      }
+    });
+    if (allCoords.length > 0) {
+      map.fitBounds(L.latLngBounds(allCoords), { padding: [20, 20] });
+    }
+  }, [map, wards]);
+  return null;
+};
+
+// Mini-map for each complaint card — real tiles + pin at GPS location
+const ComplaintMiniMap = ({ lat, lng, status }) => {
+  const color = STATUS_MARKER[status] || '#6B7280';
+  return (
+    <MapContainer
+      center={[lat, lng]}
+      zoom={15}
+      zoomControl={false}
+      attributionControl={false}
+      dragging={false}
+      doubleClickZoom={false}
+      scrollWheelZoom={false}
+      keyboard={false}
+      style={{ height: '100%', width: '100%' }}
+    >
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <CircleMarker
+        center={[lat, lng]}
+        radius={8}
+        pathOptions={{
+          fillColor: color,
+          color: '#fff',
+          weight: 2,
+          fillOpacity: 1,
+        }}
+      />
+    </MapContainer>
+  );
+};
 
 const ComplaintList = () => {
   const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
+  const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showMap, setShowMap] = useState(true);
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -21,20 +82,24 @@ const ComplaintList = () => {
   });
 
   useEffect(() => {
-    fetchComplaints();
+    fetchData();
   }, [filters.status, filters.priority, filters.category]);
 
-  const fetchComplaints = async () => {
+  const fetchData = async () => {
     try {
       const params = {
         status: filters.status || undefined,
         priority: filters.priority || undefined,
         category: filters.category || undefined,
       };
-      const res = await complaintService.getAll(params);
-      setComplaints(res.data.complaints || []);
+      const [complRes, wardsRes] = await Promise.all([
+        complaintService.getAll(params),
+        wardService.getAll(),
+      ]);
+      setComplaints(complRes.data.complaints || []);
+      setWards(wardsRes.data.wards || []);
     } catch (err) {
-      toast.error('Failed to load complaints');
+      toast.error('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -49,6 +114,11 @@ const ComplaintList = () => {
       c.address?.toLowerCase().includes(query)
     );
   });
+
+  // Only complaints that have GPS coordinates
+  const mappedComplaints = filteredComplaints.filter(
+    c => c.gpsCoordinates?.lat && c.gpsCoordinates?.lng
+  );
 
   return (
     <div className="complaint-list-page animate-fade-in">
@@ -101,8 +171,124 @@ const ComplaintList = () => {
               ))}
             </select>
           </div>
+
+          {/* Toggle map button */}
+          <button
+            className="complaints-map-toggle"
+            onClick={() => setShowMap(v => !v)}
+            title={showMap ? 'Hide Map' : 'Show Map'}
+          >
+            <HiMap />
+            {showMap ? <HiChevronUp /> : <HiChevronDown />}
+            Map View
+          </button>
         </div>
       </div>
+
+      {/* Interactive Map Panel */}
+      {showMap && (
+        <div className="complaints-map-panel glass-card">
+          <div className="complaints-map-panel__header">
+            <span className="complaints-map-panel__title">📍 Complaints Map</span>
+            <div className="complaints-map-legend">
+              {Object.entries(STATUS_MARKER).map(([status, color]) => (
+                <span key={status} className="legend-item">
+                  <span className="legend-dot" style={{ background: color }} />
+                  {STATUS_LABELS[status] || status}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="complaints-map-panel__map">
+            <MapContainer
+              center={[13.0827, 80.2707]}
+              zoom={12}
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={true}
+              attributionControl={false}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+              {/* Ward boundary polygons */}
+              {wards.map(w =>
+                w.boundaries?.coordinates?.length > 0 ? (
+                  <Polygon
+                    key={w._id}
+                    positions={w.boundaries.coordinates[0].map(([lng, lat]) => [lat, lng])}
+                    pathOptions={{
+                      color: 'var(--accent-primary)',
+                      fillColor: 'var(--accent-primary)',
+                      fillOpacity: 0.06,
+                      weight: 1.5,
+                      dashArray: '4 4',
+                    }}
+                  >
+                    <Popup>
+                      <strong>{w.name}</strong><br />
+                      Ward #{w.number}
+                    </Popup>
+                  </Polygon>
+                ) : null
+              )}
+
+              {/* Complaint pins */}
+              {mappedComplaints.map(c => (
+                <CircleMarker
+                  key={c._id}
+                  center={[c.gpsCoordinates.lat, c.gpsCoordinates.lng]}
+                  radius={7}
+                  pathOptions={{
+                    fillColor: STATUS_MARKER[c.status] || '#6B7280',
+                    color: '#fff',
+                    weight: 1.5,
+                    fillOpacity: 0.9,
+                  }}
+                >
+                  <Popup>
+                    <div style={{ minWidth: '160px' }}>
+                      <strong style={{ fontSize: '13px' }}>{c.title}</strong><br />
+                      <span style={{ fontSize: '11px', color: '#888' }}>{c.complaintId}</span><br />
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          marginTop: '4px',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          background: `${STATUS_MARKER[c.status]}22`,
+                          color: STATUS_MARKER[c.status],
+                          fontWeight: 600,
+                        }}
+                      >
+                        {STATUS_LABELS[c.status]}
+                      </span><br />
+                      <span style={{ fontSize: '11px', color: '#666', marginTop: '4px', display: 'block' }}>
+                        📍 {c.address || 'No address'}
+                      </span>
+                      <Link
+                        to={`/complaints/${c._id}`}
+                        style={{ display: 'block', marginTop: '6px', fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 600 }}
+                      >
+                        View Details →
+                      </Link>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              ))}
+
+              {/* Auto-fit to ward bounds */}
+              {wards.length > 0 && <FitWards wards={wards} />}
+            </MapContainer>
+          </div>
+
+          {/* Map stats bar */}
+          <div className="complaints-map-stats">
+            <span>🗺️ {wards.length} Wards</span>
+            <span>📍 {mappedComplaints.length} Plotted</span>
+            <span>📋 {filteredComplaints.length} Total Complaints</span>
+          </div>
+        </div>
+      )}
 
       {/* List content */}
       {loading ? (
@@ -127,7 +313,19 @@ const ComplaintList = () => {
                   </span>
                 </div>
                 <h3 className="complaint-item__title">{c.title}</h3>
-                <p className="complaint-item__address">{c.address}</p>
+                {c.gpsCoordinates?.lat && c.gpsCoordinates?.lng && (
+                  <div
+                    className="complaint-item__minimap"
+                    onClick={e => e.preventDefault()}
+                  >
+                    <ComplaintMiniMap
+                      lat={c.gpsCoordinates.lat}
+                      lng={c.gpsCoordinates.lng}
+                      status={c.status}
+                    />
+                  </div>
+                )}
+                <p className="complaint-item__address">📍 {c.address}</p>
                 <div className="complaint-item__footer">
                   <span className="complaint-item__category">
                     {CATEGORY_ICONS[c.category] || '📋'} {c.category?.replace(/_/g, ' ')}
@@ -151,3 +349,5 @@ const ComplaintList = () => {
 };
 
 export default ComplaintList;
+
+

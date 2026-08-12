@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { HiStar, HiAcademicCap, HiTrophy, HiShieldCheck } from 'react-icons/hi2';
 import './Rewards.css';

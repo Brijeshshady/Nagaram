@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { complaintService, userService } from '../../services/dataService';
 import { useAuth } from '../../context/AuthContext';
 import { ROLES, STATUS_LABELS, STATUS_COLORS, PRIORITY_COLORS, PRIORITY_LABELS, CATEGORY_ICONS, formatDateTime } from '../../utils/constants';
@@ -26,12 +26,9 @@ const ComplaintDetail = () => {
   const [rating, setRating] = useState(5);
   const [feedbackComment, setFeedbackComment] = useState('');
 
-  useEffect(() => {
-    fetchComplaintDetails();
-  }, [id]);
-
-  const fetchComplaintDetails = async () => {
+  const fetchComplaintDetails = useCallback(async () => {
     try {
+      setLoading(true);
       const res = await complaintService.getById(id);
       setComplaint(res.data.complaint);
       setSelectedSupervisor(res.data.complaint.assignedSupervisor?._id || '');
@@ -41,13 +38,17 @@ const ComplaintDetail = () => {
         const supRes = await userService.getAll({ role: ROLES.SUPERVISOR });
         setSupervisors(supRes.data.users || []);
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to load complaint details');
       navigate('/complaints');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, user?.role, navigate]);
+
+  useEffect(() => {
+    fetchComplaintDetails();
+  }, [fetchComplaintDetails]);
 
   const handleAssign = async () => {
     try {
@@ -161,9 +162,61 @@ const ComplaintDetail = () => {
                   <p className="meta-item__val">{complaint.assignedSupervisor?.name || 'Unassigned'}</p>
                 </div>
               </div>
+              {complaint.ward && (
+                <div className="meta-item">
+                  <HiMapPin className="meta-item__icon" style={{ color: 'var(--accent-primary)' }} />
+                  <div>
+                    <p className="meta-item__label">Administrative Ward</p>
+                    <p className="meta-item__val">{complaint.ward.name} (Ward {complaint.ward.number})</p>
+                  </div>
+                </div>
+              )}
+              {complaint.councillor && (
+                <div className="meta-item">
+                  <HiUser className="meta-item__icon" style={{ color: '#F59E0B' }} />
+                  <div>
+                    <p className="meta-item__label">Ward Councillor</p>
+                    <p className="meta-item__val">{complaint.councillor.name} ({complaint.councillor.phone || 'No phone'})</p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* AI Insights Panel */}
+            {/* GPS Location Map */}
+            {complaint.gpsCoordinates?.lat && complaint.gpsCoordinates?.lng && (
+              <div className="complaint-detail__map-section">
+                <p className="complaint-detail__map-label">
+                  📍 Location on Map
+                </p>
+                <div className="complaint-detail__map-wrapper">
+                  <MapContainer
+                    center={[complaint.gpsCoordinates.lat, complaint.gpsCoordinates.lng]}
+                    zoom={16}
+                    style={{ height: '100%', width: '100%' }}
+                    zoomControl={true}
+                    attributionControl={false}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <CircleMarker
+                      center={[complaint.gpsCoordinates.lat, complaint.gpsCoordinates.lng]}
+                      radius={10}
+                      pathOptions={{
+                        fillColor: STATUS_COLORS[complaint.status] || '#EF4444',
+                        color: '#fff',
+                        weight: 2.5,
+                        fillOpacity: 1,
+                      }}
+                    >
+                      <Popup>
+                        <strong>{complaint.title}</strong><br />
+                        📍 {complaint.address}
+                      </Popup>
+                    </CircleMarker>
+                  </MapContainer>
+                </div>
+              </div>
+            )}
+
             {complaint.aiAnalysis && (
               <div className="ai-insights-panel">
                 <div className="ai-insights-title">
@@ -310,7 +363,16 @@ const ComplaintDetail = () => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
-                  <Marker position={[complaint.gpsCoordinates.lat, complaint.gpsCoordinates.lng]} />
+                  <CircleMarker
+                    center={[complaint.gpsCoordinates.lat, complaint.gpsCoordinates.lng]}
+                    radius={10}
+                    pathOptions={{
+                      fillColor: STATUS_COLORS[complaint.status] || '#EF4444',
+                      color: '#fff',
+                      weight: 2.5,
+                      fillOpacity: 1,
+                    }}
+                  />
                 </MapContainer>
               </div>
             </div>

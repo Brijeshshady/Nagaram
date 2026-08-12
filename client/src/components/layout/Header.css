@@ -92,12 +92,19 @@
 
 .header__search-input {
   background: none;
-  border: none;
-  outline: none;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   color: var(--text-primary);
   font-family: var(--font-family);
   font-size: var(--font-sm);
   width: 100%;
+}
+
+.header__search-input:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .header__search-input::placeholder {

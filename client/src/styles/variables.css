@@ -25,23 +25,23 @@
   --gradient-sidebar: linear-gradient(180deg, #FFFFFF 0%, #FCFCFF 100%);
   --gradient-hero: linear-gradient(135deg, #111827 0%, #1F2937 100%);
 
-  /* Pinned strict status colors (No green, yellow, purple, or blues) */
-  --status-success: #111827;
-  --status-warning: #EF4444;
-  --status-error: #DC2626;
-  --status-info: #4B5563;
-  --status-submitted: #4B5563;
-  --status-assigned: #EF4444;
-  --status-in-progress: #111827;
-  --status-verification: #4B5563;
-  --status-resolved: #111827;
-  --status-closed: #4B5563;
-  --status-escalated: #DC2626;
+  /* Dynamic Palette Tokens (Clean & Vibrant Accent Colors) */
+  --status-success: #10B981;
+  --status-warning: #F59E0B;
+  --status-error: #EF4444;
+  --status-info: #3B82F6;
+  --status-submitted: #6366F1;
+  --status-assigned: #8B5CF6;
+  --status-in-progress: #3B82F6;
+  --status-verification: #F59E0B;
+  --status-resolved: #10B981;
+  --status-closed: #6B7280;
+  --status-escalated: #EF4444;
 
-  /* Priority Colors mapped strictly */
-  --priority-low: #4B5563;
-  --priority-medium: #EF4444;
-  --priority-high: #DC2626;
+  /* Priority Colors */
+  --priority-low: #10B981;
+  --priority-medium: #F59E0B;
+  --priority-high: #EF4444;
   --priority-critical: #DC2626;
 
   /* Typography */
@@ -64,8 +64,8 @@
   --text-accent: #EF4444;
 
   /* Borders & Shadows */
-  --border-color: #E5E7EB;
-  --border-color-hover: #D1D5DB;
+  --border-color: rgba(0, 0, 0, 0.06);
+  --border-color-hover: rgba(239, 68, 68, 0.2);
   --border-accent: #EF4444;
 
   /* Spacing */

@@ -72,9 +72,8 @@ const login = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    // Update last login (use updateOne to prevent re-hashing password hook)
+    await User.updateOne({ _id: user._id }, { lastLogin: new Date() });
 
     const token = generateToken(user);
 

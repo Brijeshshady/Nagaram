@@ -25,6 +25,12 @@ const wardSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    departments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department',
+      }
+    ],
     isActive: {
       type: Boolean,
       default: true,

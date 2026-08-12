@@ -108,7 +108,7 @@ const Login = () => {
 
           {/* Quick Demo Login */}
           <div className="auth-demo-section">
-            <p className="auth-demo-title">Quick Demo Logins</p>
+            <p className="auth-demo-title">⚡ Quick Demo Login Profiles</p>
             <div className="auth-demo-selector-group">
               <select
                 className="auth-demo-select"
@@ -119,34 +119,59 @@ const Login = () => {
                   setEmail(demoEmail);
                   setPassword(demoPass);
                 }}
-                defaultValue=""
+                value={email ? `${email}|${password}` : ""}
               >
-                <option value="" disabled>Select Demo Profile...</option>
+                <option value="" disabled>Select Demo Profile to Auto-fill...</option>
                 <optgroup label="Core Platform">
-                  <option value="admin@nagaram.city|Admin@123">Super Admin (IT & System Admin)</option>
-                  <option value="citizen@nagaram.city|Citizen@123">Rohan Sharma (Citizen)</option>
+                  <option value="admin@nagaram.city|Admin@123">Super Admin — admin@nagaram.city (Admin@123)</option>
+                  <option value="citizen@nagaram.city|Citizen@123">Rohan Sharma (Citizen) — citizen@nagaram.city (Citizen@123)</option>
                 </optgroup>
                 <optgroup label="Waste Management Department">
-                  <option value="waste.manager@nagaram.city|Manager@123">Karan Malhotra (Manager)</option>
-                  <option value="waste.supervisor@nagaram.city|Supervisor@123">Rajesh Kumar (Supervisor)</option>
-                  <option value="waste.worker@nagaram.city|Worker@123">Madan Lal (Field Worker)</option>
+                  <option value="waste.manager@nagaram.city|Manager@123">Karan Malhotra (Manager) — waste.manager@nagaram.city (Manager@123)</option>
+                  <option value="waste.supervisor@nagaram.city|Supervisor@123">Rajesh Kumar (Supervisor) — waste.supervisor@nagaram.city (Supervisor@123)</option>
+                  <option value="waste.worker@nagaram.city|Worker@123">Madan Lal (Field Worker) — waste.worker@nagaram.city (Worker@123)</option>
                 </optgroup>
                 <optgroup label="Roads Department">
-                  <option value="roads.manager@nagaram.city|Manager@123">Sunita Rao (Manager)</option>
-                  <option value="roads.supervisor@nagaram.city|Supervisor@123">Vikram Singh (Supervisor)</option>
-                  <option value="roads.worker@nagaram.city|Worker@123">Gopal Dutt (Field Worker)</option>
+                  <option value="roads.manager@nagaram.city|Manager@123">Sunita Rao (Manager) — roads.manager@nagaram.city (Manager@123)</option>
+                  <option value="roads.supervisor@nagaram.city|Supervisor@123">Vikram Singh (Supervisor) — roads.supervisor@nagaram.city (Supervisor@123)</option>
+                  <option value="roads.worker@nagaram.city|Worker@123">Gopal Dutt (Field Worker) — roads.worker@nagaram.city (Worker@123)</option>
                 </optgroup>
                 <optgroup label="Water Supply Department">
-                  <option value="water.manager@nagaram.city|Manager@123">Alok Gupta (Manager)</option>
-                  <option value="water.supervisor@nagaram.city|Supervisor@123">Sanjay Dutt (Supervisor)</option>
-                  <option value="water.worker@nagaram.city|Worker@123">Ramesh Pal (Field Worker)</option>
+                  <option value="water.manager@nagaram.city|Manager@123">Alok Gupta (Manager) — water.manager@nagaram.city (Manager@123)</option>
+                  <option value="water.supervisor@nagaram.city|Supervisor@123">Sanjay Dutt (Supervisor) — water.supervisor@nagaram.city (Supervisor@123)</option>
+                  <option value="water.worker@nagaram.city|Worker@123">Ramesh Pal (Field Worker) — water.worker@nagaram.city (Worker@123)</option>
                 </optgroup>
                 <optgroup label="Electrical Department">
-                  <option value="power.manager@nagaram.city|Manager@123">Neha Joshi (Manager)</option>
-                  <option value="power.supervisor@nagaram.city|Supervisor@123">anil sharma (Supervisor)</option>
-                  <option value="power.worker@nagaram.city|Worker@123">Vijay Ram (Field Worker)</option>
+                  <option value="power.manager@nagaram.city|Manager@123">Neha Joshi (Manager) — power.manager@nagaram.city (Manager@123)</option>
+                  <option value="power.supervisor@nagaram.city|Supervisor@123">Anil Sharma (Supervisor) — power.supervisor@nagaram.city (Supervisor@123)</option>
+                  <option value="power.worker@nagaram.city|Worker@123">Vijay Ram (Field Worker) — power.worker@nagaram.city (Worker@123)</option>
                 </optgroup>
               </select>
+            </div>
+
+            {/* Quick action chips */}
+            <div className="auth-quick-chips">
+              <button
+                type="button"
+                className="auth-chip"
+                onClick={() => { setEmail('admin@nagaram.city'); setPassword('Admin@123'); }}
+              >
+                👑 Super Admin
+              </button>
+              <button
+                type="button"
+                className="auth-chip"
+                onClick={() => { setEmail('citizen@nagaram.city'); setPassword('Citizen@123'); }}
+              >
+                👤 Citizen
+              </button>
+              <button
+                type="button"
+                className="auth-chip"
+                onClick={() => { setEmail('waste.manager@nagaram.city'); setPassword('Manager@123'); }}
+              >
+                🏢 Dept Manager
+              </button>
             </div>
           </div>
 

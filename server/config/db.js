@@ -1,8 +1,4 @@
 const mongoose = require('mongoose');
-const dns = require('dns');
-
-// Force Node.js to use Google & Cloudflare DNS to resolve Atlas SRV records
-dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 
