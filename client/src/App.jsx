@@ -41,6 +41,9 @@ import Rewards from './pages/rewards/Rewards';
 // Settings
 import Settings from './pages/settings/Settings';
 
+// Work Progress
+import WorkProgress from './pages/workprogress/WorkProgress';
+
 // Shared
 import { NotFound, Unauthorized } from './pages/shared/ErrorPages';
 
@@ -60,6 +63,9 @@ function App() {
           <Route element={<AuthGuard><AppShell /></AuthGuard>}>
             {/* Universal Dashboard */}
             <Route path="/dashboard" element={<Dashboard />} />
+
+            {/* Work Progress (Admin & Supervisor only) */}
+            <Route path="/work-progress" element={<RoleGuard roles={[ROLES.SUPER_ADMIN, ROLES.SUPERVISOR]}><WorkProgress /></RoleGuard>} />
 
             {/* User Management (Super Admin only) */}
             <Route path="/users" element={<RoleGuard roles={[ROLES.SUPER_ADMIN]}><UserManagement /></RoleGuard>} />

@@ -186,6 +186,58 @@ const seed = async () => {
       }
     }
 
+    // Seed Councillors for all Wards
+    console.log('\n📋 Seeding Councillors for all wards...');
+    await User.deleteMany({ role: ROLES.WARD_COUNCILLOR });
+    const allDbWards = await Ward.find();
+    for (const w of allDbWards) {
+      // 1. Check if this ward already has ANY councillor assigned
+      const hasCouncillor = await User.findOne({ role: ROLES.WARD_COUNCILLOR, ward: w._id });
+      if (hasCouncillor) {
+        console.log(`  ⏭️  Ward ${w.number} already has Councillor: ${hasCouncillor.name} (${hasCouncillor.email})`);
+        continue;
+      }
+
+      // 2. Check if a default councillor user with this zone email already exists
+      const email = `councillor.zone${w.number}@nagaram.city`;
+      const exists = await User.findOne({ email });
+      if (!exists) {
+        const nameMap = {
+          1: 'Srinivasan R',
+          2: 'Meenakshi Sundaram',
+          3: 'Rajesh Ramasamy',
+          4: 'Kavitha Krishnan',
+          5: 'Anandan P',
+          6: 'Baskaran S',
+          7: 'Revathi Mohan',
+          8: 'Venkatesan K',
+          9: 'Manonmani G',
+          10: 'Subramanian T',
+          11: 'Sudha Ramesh',
+          12: 'Kathirvel M',
+          13: 'Prema Lalitha',
+          14: 'Senthil Kumar',
+          15: 'Devendran G'
+        };
+        const name = nameMap[w.number] || `Councillor Ward ${w.number}`;
+        await User.create({
+          name: name,
+          email: email,
+          phone: `9876543${String(1000 + w.number).slice(1)}`, // Unique 10-digit phone
+          password: 'Councillor@123',
+          role: ROLES.WARD_COUNCILLOR,
+          ward: w._id,
+          isActive: true
+        });
+        console.log(`  🔑 Councillor created for Ward ${w.number}: ${name}`);
+      } else {
+        exists.ward = w._id;
+        exists.role = ROLES.WARD_COUNCILLOR;
+        await exists.save();
+        console.log(`  🔄 Linked existing councillor ${exists.name} to Ward ${w.number}`);
+      }
+    }
+
     // Seed Comprehensive Mock Complaints across all 8 departments and 30-day timeline
     const Complaint = require('../models/Complaint');
     await Complaint.deleteMany({}); // Reset complaints for fresh comprehensive analytics seed
@@ -449,7 +501,7 @@ const seed = async () => {
 
     console.log('\n✅ Seed complete!\n');
   } catch (error) {
-    console.error('❌ Seed error:', error.message);
+    console.error('❌ Seed error:', error);
   }
 };
 

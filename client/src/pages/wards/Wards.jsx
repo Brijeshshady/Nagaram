@@ -252,56 +252,56 @@ const Wards = () => {
                 <input type="email" value={selectedCouncillor.email} disabled />
               </div>
               <div className="form-group">
-                  <label>Phone</label>
-                  <input type="tel" value={selectedCouncillor.phone || ''} disabled />
+                <label>Phone</label>
+                <input type="tel" value={selectedCouncillor.phone || ''} disabled />
+              </div>
+              <div className="form-group">
+                <label>Department</label>
+                <input type="text" value={selectedCouncillor.department ? selectedCouncillor.department.name : 'No Department'} disabled />
+              </div>
+              {selectedCouncillor.role && (
+                <div className="form-group">
+                  <label>Role</label>
+                  <input type="text" value={selectedCouncillor.role} disabled />
                 </div>
-                  <div className="form-group">
-                  <label>Department</label>
-                  <input type="text" value={selectedCouncillor.department ? selectedCouncillor.department.name : 'No Department'} disabled />
+              )}
+              {selectedCouncillor.avatar && (
+                <div className="form-group">
+                  <label>Avatar</label>
+                  <img src={selectedCouncillor.avatar} alt="Avatar" style={{ width: '80px', borderRadius: '50%' }} />
                 </div>
-                {selectedCouncillor.role && (
-                  <div className="form-group">
-                    <label>Role</label>
-                    <input type="text" value={selectedCouncillor.role} disabled />
-                  </div>
-                )}
-                {selectedCouncillor.avatar && (
-                  <div className="form-group">
-                    <label>Avatar</label>
-                    <img src={selectedCouncillor.avatar} alt="Avatar" style={{ width: '80px', borderRadius: '50%' }} />
-                  </div>
-                )}
+              )}
             </div>
           </div>
         </div>
       )}
-{/* Ward Map Modal */}
-{showWardMapModal && selectedWard && (
-  <div className="modal-overlay" onClick={() => setShowWardMapModal(false)}>
-    <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()}>
-      <div className="modal-header">
-        <h2>Ward Map - {selectedWard.name}</h2>
-        <button className="modal-close" onClick={() => setShowWardMapModal(false)}><HiX /></button>
-      </div>
-      <div className="modal-body" style={{ height: '500px' }}>
-        {selectedWard.boundaries && selectedWard.boundaries.coordinates && (
-          <MapContainer
-            center={getPolygonCenter(mapPolygonCoords(selectedWard.boundaries.coordinates))}
-            zoom={13}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <Polygon
-              positions={mapPolygonCoords(selectedWard.boundaries.coordinates)}
-              pathOptions={{ color: 'var(--accent-primary)', fillColor: 'var(--accent-primary)', fillOpacity: 0.15, weight: 2 }}
-            />
-            <FitBounds coords={mapPolygonCoords(selectedWard.boundaries.coordinates)} />
-          </MapContainer>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+      {/* Ward Map Modal */}
+      {showWardMapModal && selectedWard && (
+        <div className="modal-overlay" onClick={() => setShowWardMapModal(false)}>
+          <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Ward Map - {selectedWard.name}</h2>
+              <button className="modal-close" onClick={() => setShowWardMapModal(false)}><HiX /></button>
+            </div>
+            <div className="modal-body" style={{ height: '500px' }}>
+              {selectedWard.boundaries && selectedWard.boundaries.coordinates && (
+                <MapContainer
+                  center={getPolygonCenter(mapPolygonCoords(selectedWard.boundaries.coordinates))}
+                  zoom={13}
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <Polygon
+                    positions={mapPolygonCoords(selectedWard.boundaries.coordinates)}
+                    pathOptions={{ color: 'var(--accent-primary)', fillColor: 'var(--accent-primary)', fillOpacity: 0.15, weight: 2 }}
+                  />
+                  <FitBounds coords={mapPolygonCoords(selectedWard.boundaries.coordinates)} />
+                </MapContainer>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
@@ -331,8 +331,8 @@ const Wards = () => {
                       const isChecked = form.departments.includes(dept._id);
                       return (
                         <label key={dept._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', padding: '6px 8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', userSelect: 'none', transition: 'all 0.15s ease' }}>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={isChecked}
                             onChange={(e) => {
                               const updated = e.target.checked

@@ -4,14 +4,23 @@ import { useAuth } from '../../context/AuthContext';
 import { ROLE_LABELS } from '../../utils/constants';
 import './Header.css';
 
-const Header = ({ onToggleSidebar }) => {
+const Header = ({ onToggleSidebar, onOpenMobileSidebar }) => {
   const { user } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <header className="header">
       <div className="header__left">
-        <button className="header__menu-btn" onClick={onToggleSidebar}>
+        <button 
+          className="header__menu-btn" 
+          onClick={() => {
+            if (window.innerWidth <= 768) {
+              onOpenMobileSidebar();
+            } else {
+              onToggleSidebar();
+            }
+          }}
+        >
           <HiMenu />
         </button>
         <div className="header__greeting">

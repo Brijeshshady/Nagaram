@@ -28,9 +28,19 @@
 
 @media (max-width: 768px) {
   .app-shell__main {
-    margin-left: var(--sidebar-collapsed-width);
+    margin-left: 0 !important;
   }
   .app-shell__content {
     padding: var(--space-md);
   }
+}
+
+.sidebar-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 99;
+  animation: fadeIn var(--transition-base) forwards;
 }

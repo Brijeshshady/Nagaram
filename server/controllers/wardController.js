@@ -125,4 +125,30 @@ const getWardByLocation = async (req, res, next) => {
   }
 };
 
-module.exports = { getWards, createWard, updateWard, deleteWard, getWardByLocation };
+const getWardById = async (req, res, next) => {
+  try {
+    const ward = await Ward.findById(req.params.id).populate('departments');
+    if (!ward) return res.status(404).json({ message: 'Ward not found' });
+
+    const councillor = await User.findOne({ role: 'ward_councillor', ward: ward._id })
+      .populate('department', 'name')
+      .select('name email phone role department avatar');
+
+    const wardObj = ward.toObject();
+    wardObj.councillor = councillor ? {
+      _id: councillor._id,
+      name: councillor.name,
+      email: councillor.email,
+      phone: councillor.phone,
+      role: councillor.role,
+      department: councillor.department,
+      avatar: councillor.avatar
+    } : null;
+
+    res.json({ ward: wardObj, councillor: wardObj.councillor });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getWards, createWard, updateWard, deleteWard, getWardByLocation, getWardById };

@@ -71,7 +71,14 @@ const ComplaintList = () => {
   const [complaints, setComplaints] = useState([]);
   const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showMap, setShowMap] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showMap, setShowMap] = useState(window.innerWidth > 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -313,7 +320,7 @@ const ComplaintList = () => {
                   </span>
                 </div>
                 <h3 className="complaint-item__title">{c.title}</h3>
-                {c.gpsCoordinates?.lat && c.gpsCoordinates?.lng && (
+                {c.gpsCoordinates?.lat && c.gpsCoordinates?.lng && !isMobile && (
                   <div
                     className="complaint-item__minimap"
                     onClick={e => e.preventDefault()}

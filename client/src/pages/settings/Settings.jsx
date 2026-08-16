@@ -5,6 +5,7 @@ import { userService } from '../../services/dataService';
 import api from '../../services/api';
 import { ROLES, ROLE_LABELS } from '../../utils/constants';
 import { HiSparkles, HiUser, HiLockClosed, HiCheck } from 'react-icons/hi2';
+import { HiX } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import './Settings.css';
 
@@ -187,12 +188,26 @@ const Settings = () => {
                 <button className="modal-close" onClick={() => setShowMyWardMapModal(false)}><HiX /></button>
               </div>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {myWard && (
-                  <MapContainer center={[20, 78]} zoom={13} style={{ height: '400px', width: '100%' }}>
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <GeoJSON data={myWard.boundary} />
-                  </MapContainer>
-                )}
+                {myWard && (() => {
+                  const getCenter = () => {
+                    if (myWard?.boundaries?.coordinates?.[0]?.length > 0) {
+                      const coords = myWard.boundaries.coordinates[0];
+                      let latSum = 0, lngSum = 0;
+                      coords.forEach(c => {
+                        latSum += c[1];
+                        lngSum += c[0];
+                      });
+                      return [latSum / coords.length, lngSum / coords.length];
+                    }
+                    return [13.0827, 80.2707];
+                  };
+                  return (
+                    <MapContainer center={getCenter()} zoom={13} style={{ height: '400px', width: '100%' }}>
+                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                      {myWard.boundaries && <GeoJSON data={myWard.boundaries} />}
+                    </MapContainer>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -212,7 +227,10 @@ const Settings = () => {
               <input
                 type="tel"
                 value={profileForm.phone}
-                onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                pattern="[0-9]{10}"
+                maxLength="10"
+                placeholder="10-digit number"
               />
             </div>
             <button type="submit" className="btn-save"><HiCheck /> Save Profile</button>

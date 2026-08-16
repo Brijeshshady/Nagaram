@@ -607,9 +607,29 @@
   .complaint-list-page__toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--space-md);
   }
   .search-bar {
     width: 100%;
+  }
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: var(--space-sm) !important;
+  }
+  .filter-select {
+    width: 100%;
+  }
+  .filter-select select {
+    width: 100%;
+  }
+  .complaints-map-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+  .complaints-map-panel__map {
+    height: 260px !important;
   }
   .details-meta-grid {
     grid-template-columns: 1fr;
@@ -620,6 +640,15 @@
   .step-line {
     margin: 0 var(--space-sm);
     margin-bottom: 24px;
+  }
+  .previews-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .photos-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .verif-images-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 

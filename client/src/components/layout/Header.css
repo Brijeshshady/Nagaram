@@ -1,5 +1,5 @@
 /* =============================================
-   Header Styles
+   Header — Dark Theme
    ============================================= */
 
 .header {
@@ -8,9 +8,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-xl);
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(11, 15, 26, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
@@ -36,14 +36,15 @@
 }
 
 .header__menu-btn:hover {
-  background: var(--bg-glass-hover);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-primary);
 }
 
 .header__greeting h2 {
-  font-size: var(--font-lg);
-  font-weight: 600;
+  font-size: var(--font-md);
+  font-weight: 700;
   color: var(--text-primary);
+  line-height: 1.2;
 }
 
 .header__name {
@@ -70,19 +71,20 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  background: var(--bg-glass);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
-  padding: 6px var(--space-md);
-  width: 200px;
+  padding: 7px 16px;
+  width: 220px;
   transition: all var(--transition-base);
 }
 
 .header__search--open,
 .header__search:focus-within {
   width: 320px;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  background: var(--bg-elevated);
 }
 
 .header__search-icon {
@@ -111,15 +113,15 @@
   color: var(--text-muted);
 }
 
-/* Icon Button */
+/* Icon buttons */
 .header__icon-btn {
   position: relative;
-  background: var(--bg-glass);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   cursor: pointer;
-  padding: 8px;
+  padding: 9px;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
   display: flex;
@@ -128,9 +130,9 @@
 }
 
 .header__icon-btn:hover {
-  background: var(--bg-glass-hover);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
-  border-color: var(--border-color-hover);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .header__badge {
@@ -145,18 +147,11 @@
   border-radius: var(--radius-full);
   min-width: 18px;
   text-align: center;
+  border: 2px solid var(--bg-primary);
 }
 
 @media (max-width: 768px) {
-  .header__menu-btn {
-    display: flex;
-  }
-
-  .header__search {
-    display: none;
-  }
-
-  .header__greeting h2 {
-    font-size: var(--font-md);
-  }
+  .header__menu-btn { display: flex; }
+  .header__search { display: none; }
+  .header__greeting h2 { font-size: var(--font-sm); }
 }

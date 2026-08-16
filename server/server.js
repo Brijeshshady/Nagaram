@@ -6,6 +6,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const logger = require('./middleware/logger');
 
 // Route imports
 const authRoutes = require('./routes/auth.routes');
@@ -23,6 +24,10 @@ const app = express();
 
 // =============================================
 // Middleware
+// =============================================
+
+// Logger
+app.use(logger);
 // =============================================
 
 // CORS

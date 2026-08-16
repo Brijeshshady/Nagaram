@@ -113,6 +113,7 @@ export const NAV_ITEMS = {
   ],
   [ROLES.SUPER_ADMIN]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'HiHome' },
+    { label: 'Work Progress', path: '/work-progress', icon: 'HiTrendingUp' },
     { label: 'Complaints', path: '/complaints', icon: 'HiClipboardList' },
     { label: 'Users', path: '/users', icon: 'HiUsers' },
     { label: 'Departments', path: '/departments', icon: 'HiOfficeBuilding' },
@@ -130,6 +131,7 @@ export const NAV_ITEMS = {
   ],
   [ROLES.SUPERVISOR]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'HiHome' },
+    { label: 'Work Progress', path: '/work-progress', icon: 'HiTrendingUp' },
     { label: 'Assigned Tasks', path: '/complaints', icon: 'HiClipboardList' },
     { label: 'My Workers', path: '/workforce', icon: 'HiUsers' },
     { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },

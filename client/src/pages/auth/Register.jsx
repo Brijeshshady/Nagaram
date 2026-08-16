@@ -13,7 +13,11 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    let { name, value } = e.target;
+    if (name === 'phone') {
+      value = value.replace(/\D/g, '').slice(0, 10);
+    }
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -78,7 +82,7 @@ const Register = () => {
             <label htmlFor="phone">Phone Number</label>
             <div className="auth-input-wrapper">
               <HiPhone className="auth-input-icon" />
-              <input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="9876543210" />
+              <input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="9876543210" pattern="[0-9]{10}" maxLength="10" />
             </div>
           </div>
 

@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { NAV_ITEMS, ROLE_LABELS, ROLE_COLORS } from '../../utils/constants';
-import { HiHome, HiPlus, HiClipboardList, HiStar, HiSpeakerphone, HiUsers, HiOfficeBuilding, HiChartBar, HiCog, HiLogout } from 'react-icons/hi';
+import { HiHome, HiPlus, HiClipboardList, HiStar, HiSpeakerphone, HiUsers, HiOfficeBuilding, HiChartBar, HiCog, HiLogout, HiX, HiTrendingUp } from 'react-icons/hi';
 import './Sidebar.css';
 
 const ICON_MAP = {
@@ -14,9 +14,10 @@ const ICON_MAP = {
   HiOfficeBuilding: HiOfficeBuilding,
   HiChartBar: HiChartBar,
   HiCog: HiCog,
+  HiTrendingUp: HiTrendingUp,
 };
 
-const Sidebar = ({ collapsed, onToggle }) => {
+const Sidebar = ({ collapsed, onToggle, mobileOpen, onCloseMobile }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -25,18 +26,26 @@ const Sidebar = ({ collapsed, onToggle }) => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+    if (onCloseMobile) onCloseMobile();
   };
 
+  const showExpanded = !collapsed || mobileOpen;
+
   return (
-    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
+    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''} ${mobileOpen ? 'sidebar--mobile-open' : ''}`}>
       {/* Logo */}
       <div className="sidebar__logo">
         <div className="sidebar__logo-icon">🏙️</div>
-        {!collapsed && (
+        {showExpanded && (
           <div className="sidebar__logo-text">
             <h1>NAGARAM</h1>
             <span>Smart City</span>
           </div>
+        )}
+        {mobileOpen && (
+          <button className="sidebar__close-mobile" onClick={onCloseMobile} title="Close Menu">
+            <HiX />
+          </button>
         )}
       </div>
 
@@ -51,10 +60,15 @@ const Sidebar = ({ collapsed, onToggle }) => {
               className={({ isActive }) =>
                 `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
               }
-              title={collapsed ? item.label : undefined}
+              title={collapsed && !mobileOpen ? item.label : undefined}
+              onClick={() => {
+                if (window.innerWidth <= 768 && onCloseMobile) {
+                  onCloseMobile();
+                }
+              }}
             >
               <Icon className="sidebar__link-icon" />
-              {!collapsed && <span>{item.label}</span>}
+              {showExpanded && <span>{item.label}</span>}
             </NavLink>
           );
         })}
@@ -70,7 +84,7 @@ const Sidebar = ({ collapsed, onToggle }) => {
               user?.name?.charAt(0)?.toUpperCase() || 'U'
             )}
           </div>
-          {!collapsed && (
+          {showExpanded && (
             <div className="sidebar__user-info">
               <p className="sidebar__user-name">{user?.name}</p>
               <p className="sidebar__user-role" style={{ color: ROLE_COLORS[user?.role] }}>
@@ -81,7 +95,7 @@ const Sidebar = ({ collapsed, onToggle }) => {
         </div>
         <button className="sidebar__logout" onClick={handleLogout} title="Logout">
           <HiLogout />
-          {!collapsed && <span>Logout</span>}
+          {showExpanded && <span>Logout</span>}
         </button>
       </div>
     </aside>
