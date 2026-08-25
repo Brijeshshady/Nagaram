@@ -20,17 +20,19 @@ const register = async (req, res, next) => {
   try {
     const { name, email, phone, password } = req.body;
 
+    const normalizedEmail = (email || '').toLowerCase().trim();
+
     // Check if email already exists
-    const existing = await User.findOne({ email });
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
     // Citizens can only self-register as citizen role
     const user = await User.create({
-      name,
-      email,
-      phone,
+      name: name?.trim(),
+      email: normalizedEmail,
+      phone: phone?.trim(),
       password,
       role: ROLES.CITIZEN,
     });
@@ -58,7 +60,8 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }

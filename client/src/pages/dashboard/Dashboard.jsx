@@ -11,7 +11,8 @@ import { ROLES, STATUS_LABELS, STATUS_COLORS, PRIORITY_COLORS, CATEGORY_ICONS, t
 import {
   HiClipboardList, HiCheckCircle, HiClock, HiExclamation,
   HiTrendingUp, HiUsers, HiStar, HiMap, HiOutlineFire,
-  HiLightningBolt, HiShieldCheck, HiBell
+  HiLightningBolt, HiShieldCheck, HiBell, HiSparkles,
+  HiOfficeBuilding, HiArrowNarrowRight, HiCheck
 } from 'react-icons/hi';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -25,7 +26,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Inline SVG dustbin icon to avoid CORS/hotlink issues
+// Inline SVG dustbin icon
 const dustbinSVG = `
   <svg viewBox="0 0 64 64" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
     <rect x="16" y="16" width="32" height="36" fill="#10b981" rx="4" stroke="#065f46" stroke-width="2"/>
@@ -45,26 +46,42 @@ const dustbinIcon = L.divIcon({
   popupAnchor: [0, -14],
 });
 
-const PIE_COLORS = ['#6366f1', '#0891b2', '#7c3aed', '#10b981', '#f59e0b', '#ef4444'];
+const PIE_COLORS = ['#ef4444', '#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#06b6d4'];
 
-// Animated counter hook
-const useCountUp = (target, duration = 1200) => {
-  const [count, setCount] = useState(0);
+// Animated counter hook with safe number casting
+const useCountUp = (target, duration = 1000) => {
+  const numTarget = typeof target === 'number' && !isNaN(target) ? target : 0;
+  const [count, setCount] = useState(numTarget);
   const frameRef = useRef(null);
+
   useEffect(() => {
-    if (!target) { setCount(0); return; }
+    if (!numTarget) { setCount(0); return; }
     const start = Date.now();
     const animate = () => {
       const elapsed = Date.now() - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.round(eased * target));
+      setCount(Math.round(eased * numTarget));
       if (progress < 1) frameRef.current = requestAnimationFrame(animate);
     };
     frameRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frameRef.current);
-  }, [target, duration]);
+  }, [numTarget, duration]);
+
   return count;
+};
+
+// Format date helper for chart X-axis
+const formatChartDate = (dateStr) => {
+  if (!dateStr) return '';
+  if (typeof dateStr === 'string' && dateStr.length <= 3) return dateStr;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return String(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch {
+    return String(dateStr);
+  }
 };
 
 const Dashboard = () => {
@@ -93,9 +110,12 @@ const Dashboard = () => {
     { coords: [12.9800, 80.2300], intensity: 280, desc: 'Adyar Residential Sector (Litter Frequency)' },
   ];
 
+  const userRole = user?.role;
+  const userId = user?._id;
+
   const fetchDashboardData = useCallback(async () => {
     try {
-      if ([ROLES.SUPER_ADMIN, ROLES.DEPT_MANAGER].includes(user?.role)) {
+      if ([ROLES.SUPER_ADMIN, ROLES.DEPT_MANAGER].includes(userRole)) {
         const results = await Promise.allSettled([
           analyticsService.getOverview(),
           analyticsService.getByCategory(),
@@ -144,7 +164,7 @@ const Dashboard = () => {
           setRecentComplaints(complaintsRes?.data?.complaints || []);
           const dustbinsRes = await dustbinService.getAll();
           setDustbins(dustbinsRes?.data?.dustbins || []);
-          if (user?.role === ROLES.FIELD_WORKER) {
+          if (userRole === ROLES.FIELD_WORKER) {
             const today = new Date().toISOString().split('T')[0];
             const routeRes = await routeService.getRoute({ date: today });
             if (routeRes?.data?.routes?.length > 0) setRoute(routeRes.data.routes[0]);
@@ -156,9 +176,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userRole, userId]);
 
-  useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const handleMapClick = (latlng) => {
     if ([ROLES.SUPER_ADMIN, ROLES.DEPT_MANAGER, ROLES.SUPERVISOR].includes(user?.role)) {
@@ -175,8 +197,8 @@ const Dashboard = () => {
         lng: newDustbinLocation.lng,
         address: newDustbinData.address,
         capacity: newDustbinData.capacity,
-        department: user.department || null,
-        ward: user.ward || null
+        department: user?.department || null,
+        ward: user?.ward || null
       });
       setShowDustbinModal(false);
       setNewDustbinData({ address: '', capacity: 0 });
@@ -194,7 +216,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="dashboard-loading">
-        <div className="animate-spin" style={{ width: 48, height: 48, border: '3px solid var(--border-color)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%' }} />
+        <div className="animate-spin" />
       </div>
     );
   }
@@ -202,246 +224,323 @@ const Dashboard = () => {
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN;
   const now = new Date();
   const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 17 ? 'Good afternoon' : 'Good evening';
+  const totalCategoryComplaints = Array.isArray(categoryData) ? categoryData.reduce((acc, curr) => acc + (curr?.count || 0), 0) : 0;
+  const totalWeeklyIntake = Array.isArray(trendsData) ? trendsData.reduce((acc, curr) => acc + (curr?.count || 0), 0) : 0;
 
   return (
     <div className="dashboard animate-fade-in">
 
-      {/* ── Hero Banner ─────────────────────────────── */}
+      {/* ── 1. Refined Operations Hero Header ──────────────── */}
       <div className="dashboard__hero">
         <div className="hero-content">
-          <h1>
-            🏙️ Nagaram Smart City Hub
-          </h1>
-          <p>
-            {greeting}, <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{user?.name?.split(' ')[0] || 'Admin'}</strong> — Real-time monitoring of municipal services across all Chennai wards.
-          </p>
+          <div className="hero-heading-row">
+            <div>
+              <h1 className="hero-title">Nagaram Smart City Hub</h1>
+              <p className="hero-desc">
+                {greeting}, <strong className="hero-user-name">{user?.name?.split(' ')[0] || 'Admin'}</strong> — Real-time monitoring of municipal operations across all 15 Chennai zones.
+              </p>
+            </div>
+          </div>
+          
           <div className="hero-badge-group">
-            <span className="hero-badge">🟢 System Online</span>
-            <span className="hero-badge">⚡ AI Diagnostics Active</span>
-            <span className="hero-badge">📡 {dustbins.length} Smart Bins Tracked</span>
-            <span className="hero-badge">🕐 {now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+            <span className="ops-pill ops-pill--live">
+              <span className="live-dot" />
+              All Systems Operational
+            </span>
+            <span className="ops-pill">
+              <HiSparkles className="ops-pill__icon" />
+              AI Diagnostics Active
+            </span>
+            <span className="ops-pill">
+              <HiLightningBolt className="ops-pill__icon" />
+              {dustbins.length} Smart Bins Tracked
+            </span>
+            <span className="ops-pill">
+              <HiClock className="ops-pill__icon" />
+              {now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ── Quick Action Tiles ────────────────────────── */}
+      {/* ── 2. Actionable Quick Action Strip ────────────────── */}
       {isSuperAdmin && (
         <div className="dashboard__quick-actions">
-          <Link to="/complaints" className="action-tile glass-card">
-            <span className="action-tile__icon">📋</span>
-            <div>
-              <h4>Manage Complaints</h4>
-              <p>Assign tasks & review logs</p>
+          <Link to="/complaints" className="action-tile">
+            <div className="action-tile__icon-wrap">
+              <HiClipboardList />
             </div>
+            <div className="action-tile__body">
+              <p className="action-tile__title">Manage Complaints</p>
+              <p className="action-tile__desc">Assign tasks & review logs</p>
+            </div>
+            <HiArrowNarrowRight className="action-tile__arrow" />
           </Link>
-          <Link to="/users" className="action-tile glass-card">
-            <span className="action-tile__icon">👥</span>
-            <div>
-              <h4>City Personnel</h4>
-              <p>Configure municipal workforce</p>
+          <Link to="/users" className="action-tile">
+            <div className="action-tile__icon-wrap">
+              <HiUsers />
             </div>
+            <div className="action-tile__body">
+              <p className="action-tile__title">City Personnel</p>
+              <p className="action-tile__desc">Configure municipal workforce</p>
+            </div>
+            <HiArrowNarrowRight className="action-tile__arrow" />
           </Link>
-          <Link to="/wards" className="action-tile glass-card">
-            <span className="action-tile__icon">🗺️</span>
-            <div>
-              <h4>Ward Settings</h4>
-              <p>Configure Chennai zones</p>
+          <Link to="/wards" className="action-tile">
+            <div className="action-tile__icon-wrap">
+              <HiMap />
             </div>
+            <div className="action-tile__body">
+              <p className="action-tile__title">Ward Settings</p>
+              <p className="action-tile__desc">Configure Chennai zones</p>
+            </div>
+            <HiArrowNarrowRight className="action-tile__arrow" />
           </Link>
-          <Link to="/work-progress" className="action-tile glass-card">
-            <span className="action-tile__icon">📊</span>
-            <div>
-              <h4>Work Progress</h4>
-              <p>Live field operations tracker</p>
+          <Link to="/work-progress" className="action-tile">
+            <div className="action-tile__icon-wrap">
+              <HiTrendingUp />
             </div>
+            <div className="action-tile__body">
+              <p className="action-tile__title">Work Progress</p>
+              <p className="action-tile__desc">Live field operations tracker</p>
+            </div>
+            <HiArrowNarrowRight className="action-tile__arrow" />
           </Link>
         </div>
       )}
 
-      {/* ── KPI Cards (Admin) ─────────────────────────── */}
-      {stats && isSuperAdmin && (
-        <div className="dashboard__kpis stagger-children">
+      {/* ── 3. High-Clarity KPI Metric Grid ─────────────────── */}
+      {isSuperAdmin && (
+        <div className="dashboard__kpis">
           <KPICard
             icon={<HiClipboardList />}
             label="Total Complaints"
-            value={stats.totalComplaints}
-            color="#6366f1"
+            value={stats?.totalComplaints || 0}
+            accentColor="#ef4444"
             trend="+12% this week"
-            trendUp
+            trendType="neutral"
           />
           <KPICard
             icon={<HiCheckCircle />}
             label="Resolved Cases"
-            value={stats.resolvedComplaints + stats.closedComplaints}
-            color="#10b981"
+            value={(stats?.resolvedComplaints || 0) + (stats?.closedComplaints || 0)}
+            accentColor="#10b981"
             trend="↑ 8% resolved"
-            trendUp
+            trendType="up"
           />
           <KPICard
             icon={<HiClock />}
             label="Pending Resolution"
-            value={stats.pendingComplaints}
-            color="#f59e0b"
+            value={stats?.pendingComplaints || 0}
+            accentColor="#f59e0b"
             trend="Avg. 3.2h SLA"
+            trendType="neutral"
           />
           <KPICard
             icon={<HiExclamation />}
             label="Escalated Incidents"
-            value={stats.escalatedComplaints}
-            color="#ef4444"
-            trend="Needs attention"
-            trendUp={false}
+            value={stats?.escalatedComplaints || 0}
+            accentColor={(stats?.escalatedComplaints || 0) > 0 ? "#ef4444" : "#10b981"}
+            trend={(stats?.escalatedComplaints || 0) > 0 ? "Needs attention" : "Optimal (0 alert)"}
+            trendType={(stats?.escalatedComplaints || 0) > 0 ? "down" : "optimal"}
           />
           <KPICard
             icon={<HiLightningBolt />}
             label="Today's Intake"
-            value={stats.todayComplaints}
-            color="#8b5cf6"
-            trend="Live count"
+            value={stats?.todayComplaints || 0}
+            accentColor="#8b5cf6"
+            trend="Live intake"
+            trendType="neutral"
           />
           <KPICard
             icon={<HiUsers />}
             label="Active Workforce"
-            value={stats.activeWorkers}
-            color="#0891b2"
+            value={stats?.activeWorkers || 0}
+            accentColor="#0ea5e9"
             trend="Field deployed"
-            trendUp
+            trendType="up"
           />
         </div>
       )}
 
-      {/* ── KPI Cards (Citizen) ───────────────────────── */}
+      {/* ── KPI Cards (Citizen Role) ───────────────────────── */}
       {!isSuperAdmin && user?.role === ROLES.CITIZEN && (
-        <div className="dashboard__kpis">
-          <KPICard icon={<HiClipboardList />} label="My Reported Issues" value={recentComplaints.length} color="#6366f1" />
-          <KPICard icon={<HiStar />} label="My Reward Points" value={user.rewardPoints || 0} color="#f59e0b" />
+        <div className="dashboard__kpis dashboard__kpis--citizen">
+          <KPICard
+            icon={<HiClipboardList />}
+            label="My Reported Issues"
+            value={recentComplaints.length}
+            accentColor="#ef4444"
+            trend="Active tickets"
+            trendType="neutral"
+          />
+          <KPICard
+            icon={<HiStar />}
+            label="My Reward Points"
+            value={user?.rewardPoints || 0}
+            accentColor="#f59e0b"
+            trend="Civic Score"
+            trendType="up"
+          />
         </div>
       )}
 
-      {/* ── Charts Grid (Admin) ───────────────────────── */}
-      {isSuperAdmin && stats && (
+      {/* ── 4. Charts & Analytics Grid ─────────────────────── */}
+      {isSuperAdmin && (
         <div className="dashboard__admin-grid">
           {/* Trends Area Chart */}
-          <div className="dashboard-card glass-card">
-            <h3><HiTrendingUp style={{ color: 'var(--accent-primary)' }} /> Weekly Complaint Intake Trend</h3>
-            <p className="dashboard-card__subtitle">Number of issues filed per day over the past 7 days</p>
-            <div style={{ width: '100%', height: '220px' }}>
-              <ResponsiveContainer>
-                <AreaChart data={trendsData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+          <div className="dashboard-card">
+            <div className="dashboard-card__header">
+              <div>
+                <h2 className="dashboard-card__title">
+                  <HiTrendingUp className="dashboard-card__title-icon" /> Weekly Complaint Intake Trend
+                </h2>
+                <p className="dashboard-card__subtitle">Daily issues filed across Chennai sectors (past 7 days)</p>
+              </div>
+              <span className="chart-total-pill">{totalWeeklyIntake} Total Issues</span>
+            </div>
+            
+            <div className="chart-container" style={{ width: '100%', height: '210px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendsData} margin={{ top: 10, right: 12, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    stroke="var(--text-muted)"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={{ stroke: 'var(--border-color)' }}
+                    tickFormatter={formatChartDate}
+                  />
+                  <YAxis
+                    stroke="var(--text-muted)"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                    tickCount={5}
+                  />
                   <Tooltip
                     contentStyle={{
-                      background: 'rgba(15, 23, 42, 0.95)',
-                      border: '1px solid rgba(99,102,241,0.3)',
-                      borderRadius: '10px',
-                      color: '#fff',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
-                      backdropFilter: 'blur(10px)',
+                      boxShadow: 'var(--shadow-lg)',
                     }}
-                    itemStyle={{ color: '#a5b4fc' }}
-                    cursor={{ stroke: 'rgba(99,102,241,0.3)', strokeWidth: 1 }}
+                    itemStyle={{ color: '#ef4444', fontWeight: 600 }}
+                    cursor={{ stroke: 'var(--accent-primary)', strokeWidth: 1, strokeDasharray: '3 3' }}
                   />
                   <Area
                     type="monotone"
                     dataKey="count"
                     name="Issues Filed"
-                    stroke="#6366f1"
+                    stroke="#ef4444"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#trendGrad)"
-                    dot={{ fill: '#6366f1', r: 3, strokeWidth: 0 }}
-                    activeDot={{ r: 6, fill: '#818cf8', strokeWidth: 0 }}
+                    dot={{ fill: '#ef4444', r: 3.5, strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: '#f87171', strokeWidth: 2, stroke: '#fff' }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Pie Chart + Legend */}
-          <div className="dashboard-card glass-card">
-            <h3>🗑️ Complaint Categories</h3>
-            <p className="dashboard-card__subtitle">Distribution by department</p>
-            <div style={{ width: '100%', height: '160px' }}>
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={48}
-                    outerRadius={72}
-                    paddingAngle={4}
-                    dataKey="count"
-                    nameKey="label"
-                  >
-                    {categoryData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="transparent" />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: 'rgba(15, 23, 42, 0.95)',
-                      border: '1px solid rgba(99,102,241,0.3)',
-                      borderRadius: '10px',
-                      color: '#fff',
-                      fontSize: '12px',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
-                    }}
-                    itemStyle={{ color: '#a5b4fc' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+          {/* Pie Donut Chart + Centered Metric */}
+          <div className="dashboard-card">
+            <div className="dashboard-card__header">
+              <div>
+                <h2 className="dashboard-card__title">
+                  <HiOfficeBuilding className="dashboard-card__title-icon" /> Complaint Categories
+                </h2>
+                <p className="dashboard-card__subtitle">Department distribution volume</p>
+              </div>
             </div>
-            <div className="category-legend">
-              {categoryData.map((item, idx) => (
-                <div key={idx} className="category-legend-item">
-                  <div className="category-legend-dot" style={{ background: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                  <span className="category-legend-label">{item.label}</span>
-                  <span className="category-legend-count">{item.count}</span>
+
+            <div className="donut-chart-layout">
+              <div className="donut-wrapper" style={{ position: 'relative', width: '150px', height: '150px', flexShrink: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={48}
+                      outerRadius={68}
+                      paddingAngle={3}
+                      dataKey="count"
+                      nameKey="label"
+                    >
+                      {categoryData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="transparent" />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        color: 'var(--text-primary)',
+                        fontSize: '12px',
+                        boxShadow: 'var(--shadow-md)',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Centered Metric in Donut Hole */}
+                <div className="donut-center-metric">
+                  <span className="donut-center-val">{totalCategoryComplaints}</span>
+                  <span className="donut-center-lbl">Total</span>
                 </div>
-              ))}
+              </div>
+
+              {/* Clean Structured Legend */}
+              <div className="category-legend">
+                {categoryData.map((item, idx) => {
+                  const pct = totalCategoryComplaints > 0 ? Math.round(((item?.count || 0) / totalCategoryComplaints) * 100) : 0;
+                  return (
+                    <div key={idx} className="category-legend-item">
+                      <div className="category-legend-dot" style={{ background: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                      <span className="category-legend-label" title={item?.label}>{item?.label}</span>
+                      <span className="category-legend-count">{item?.count || 0}</span>
+                      <span className="category-legend-pct">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── City Infrastructure Map ─────────────────── */}
+      {/* ── 5. City Infrastructure Map ──────────────────────── */}
       <div className="dashboard__section">
         <div className="dashboard-map-header">
-          <h3><HiMap /> City Infrastructure Map</h3>
+          <div>
+            <h2 className="dashboard-section-title">
+              <HiMap className="dashboard-section-icon" /> City Infrastructure & Active Assets
+            </h2>
+            <p className="dashboard-section-subtitle">Real-time GPS coordinates of smart dustbins and reported municipal incidents</p>
+          </div>
           {isSuperAdmin && (
             <button
               onClick={() => setViewHeatmap(!viewHeatmap)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 14px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                background: viewHeatmap ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-secondary)',
-                color: viewHeatmap ? '#ef4444' : 'var(--text-secondary)',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
+              className={`btn-map-toggle ${viewHeatmap ? 'btn-map-toggle--active' : ''}`}
             >
               <HiOutlineFire /> {viewHeatmap ? 'Hide Hotspots' : 'Show Hotspots'}
             </button>
           )}
         </div>
 
-        <div className="dashboard-map-wrapper" style={{ height: '420px', width: '100%' }}>
+        <div className="dashboard-map-wrapper" style={{ height: '320px', width: '100%' }}>
           <MapContainer center={mapCenter} zoom={12} style={{ height: '100%', width: '100%' }}>
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -459,67 +558,71 @@ const Dashboard = () => {
                 <Popup>
                   <div style={{ fontSize: '12px', fontWeight: 600, maxWidth: 180 }}>
                     🔥 {spot.desc}
-                    <p style={{ margin: '4px 0 0 0', color: '#666', fontWeight: 400 }}>Cleanup demand: {spot.intensity} reports/month</p>
+                    <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontWeight: 400 }}>Demand: {spot.intensity} reports/month</p>
                   </div>
                 </Popup>
               </Circle>
             ))}
 
             {recentComplaints
-              .filter(c => c.gpsCoordinates?.lat && c.gpsCoordinates?.lng)
+              .filter(c => c?.gpsCoordinates && !isNaN(parseFloat(c.gpsCoordinates.lat)) && !isNaN(parseFloat(c.gpsCoordinates.lng)))
               .map(c => (
-                <Marker key={c._id} position={[c.gpsCoordinates.lat, c.gpsCoordinates.lng]}>
+                <Marker key={c._id} position={[parseFloat(c.gpsCoordinates.lat), parseFloat(c.gpsCoordinates.lng)]}>
                   <Popup>
-                    <div style={{ fontSize: '12px' }}>
-                      <b style={{ color: '#6366f1' }}>{c.complaintId}</b>
-                      <p style={{ fontWeight: 600, margin: '2px 0' }}>{c.title}</p>
-                      <span style={{ color: STATUS_COLORS[c.status], fontWeight: 700 }}>{STATUS_LABELS[c.status]}</span>
+                    <div style={{ fontSize: '12px', maxWidth: 200 }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>{c.title}</strong>
+                      <p style={{ margin: '4px 0', color: 'var(--text-secondary)' }}>{c.address}</p>
+                      <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: `${STATUS_COLORS[c.status] || '#ef4444'}20`, color: STATUS_COLORS[c.status] || '#ef4444', fontWeight: 700 }}>
+                        {STATUS_LABELS[c.status] || c.status}
+                      </span>
                     </div>
                   </Popup>
                 </Marker>
               ))}
 
             {dustbins
-              .filter(d => d.gpsCoordinates?.lat && d.gpsCoordinates?.lng)
-              .map(d => (
-                <Marker key={d._id} position={[d.gpsCoordinates.lat, d.gpsCoordinates.lng]} icon={dustbinIcon}>
+              .filter(b => b && !isNaN(parseFloat(b.lat)) && !isNaN(parseFloat(b.lng)))
+              .map(b => (
+                <Marker key={b._id} position={[parseFloat(b.lat), parseFloat(b.lng)]} icon={dustbinIcon}>
                   <Popup>
-                    <div style={{ fontSize: '12px' }}>
-                      <b style={{ color: '#10b981' }}>{d.dustbinId}</b>
-                      <p style={{ fontWeight: 600, margin: '2px 0' }}>Capacity: {d.capacity}%</p>
-                      <p style={{ margin: '2px 0', color: '#888' }}>Last Cleaned: {d.lastCleanedAt ? timeAgo(d.lastCleanedAt) : 'N/A'}</p>
+                    <div style={{ fontSize: '12px', minWidth: 160 }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>🗑️ Smart Dustbin #{b.binId || b._id?.slice(-4)}</strong>
+                      <p style={{ margin: '4px 0', color: 'var(--text-secondary)' }}>{b.address || 'Chennai Ward Asset'}</p>
+                      <div style={{ background: 'var(--bg-tertiary)', borderRadius: 4, height: 8, margin: '8px 0 4px', overflow: 'hidden' }}>
+                        <div style={{ width: `${b.capacity || 0}%`, height: '100%', background: (b.capacity || 0) > 80 ? '#ef4444' : (b.capacity || 0) > 50 ? '#f59e0b' : '#10b981' }} />
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Fill Level: {b.capacity || 0}%</span>
                     </div>
                   </Popup>
                 </Marker>
               ))}
 
-            {route && route.waypoints.length > 1 && (
+            {route && Array.isArray(route.waypoints) && route.waypoints.length > 1 && (
               <Polyline
-                positions={route.waypoints.filter(w => w.lat && w.lng).map(w => [w.lat, w.lng])}
-                pathOptions={{ color: '#6366f1', weight: 4, dashArray: '10, 10' }}
+                positions={route.waypoints.filter(w => !isNaN(parseFloat(w.lat)) && !isNaN(parseFloat(w.lng))).map(w => [parseFloat(w.lat), parseFloat(w.lng)])}
+                pathOptions={{ color: '#ef4444', weight: 4, dashArray: '10, 10' }}
               />
             )}
           </MapContainer>
         </div>
       </div>
 
-      {/* ── Feeds Grid ───────────────────────────────── */}
+      {/* ── 6. Balanced Operational Feeds Grid ───────────────── */}
       <div className="dashboard__feeds-grid">
         {/* Recent Complaints Feed */}
         <div className="dashboard__section">
-          <h2>
-            <HiBell style={{ color: 'var(--accent-primary)' }} />
-            Latest Incident Logs
+          <h2 className="dashboard-section-title">
+            <HiBell className="dashboard-section-icon" /> Latest Incident Logs
           </h2>
           {recentComplaints.length > 0 ? (
             <div className="dashboard__complaints-list">
-              {recentComplaints.slice(0, 8).map(complaint => (
+              {recentComplaints.slice(0, 6).map(complaint => (
                 <Link to={`/complaints/${complaint._id}`} key={complaint._id} className="complaint-card">
                   <div className="complaint-card__header">
                     <span className="complaint-card__id">{complaint.complaintId}</span>
                     <span
                       className="complaint-card__status"
-                      style={{ background: `${STATUS_COLORS[complaint.status]}20`, color: STATUS_COLORS[complaint.status] }}
+                      style={{ background: `${STATUS_COLORS[complaint.status]}18`, color: STATUS_COLORS[complaint.status] }}
                     >
                       {STATUS_LABELS[complaint.status]}
                     </span>
@@ -527,18 +630,20 @@ const Dashboard = () => {
                   <h3 className="complaint-card__title">{complaint.title}</h3>
                   <p className="complaint-card__desc">{complaint.address}</p>
                   <div className="complaint-card__footer">
-                    <span>{CATEGORY_ICONS[complaint.category]} {complaint.category?.replace(/_/g, ' ')}</span>
+                    <span className="complaint-card__tag">
+                      {CATEGORY_ICONS[complaint.category]} {complaint.category?.replace(/_/g, ' ')}
+                    </span>
                     <span className="complaint-card__priority" style={{ color: PRIORITY_COLORS[complaint.priority] }}>
                       ● {complaint.priority}
                     </span>
-                    <span>{timeAgo(complaint.createdAt)}</span>
+                    <span className="complaint-card__time">{timeAgo(complaint.createdAt)}</span>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
             <div className="dashboard__empty">
-              <p>✅ No complaints reported yet.</p>
+              <p>No active incidents reported yet.</p>
             </div>
           )}
         </div>
@@ -546,28 +651,32 @@ const Dashboard = () => {
         {/* Daily Work Updates */}
         {[ROLES.SUPER_ADMIN, ROLES.DEPT_MANAGER].includes(user?.role) && (
           <div className="dashboard__section">
-            <h2>
-              <HiShieldCheck style={{ color: '#10b981' }} />
-              Today's Work Updates
+            <h2 className="dashboard-section-title">
+              <HiShieldCheck className="dashboard-section-icon" style={{ color: '#10b981' }} /> Today's Work Updates
             </h2>
             {dailyUpdates.length > 0 ? (
               <div className="dashboard__updates-list">
-                {dailyUpdates.map(update => (
+                {dailyUpdates.slice(0, 6).map(update => (
                   <Link to={`/complaints/${update.complaintDbId}`} key={update.id} className="update-card">
                     <div className="update-card__timeline-marker" />
                     <div className="update-card__content">
                       <div className="update-card__header">
-                        <span className="update-card__time">
-                          {new Date(update.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <span
+                          className="update-card__status-pill"
+                          style={{ color: STATUS_COLORS[update.status], background: `${STATUS_COLORS[update.status]}18` }}
+                        >
+                          {STATUS_LABELS[update.status]}
                         </span>
-                        <span className="update-card__worker">{update.changedBy}</span>
+                        <span className="update-card__time">
+                          {update.timestamp ? new Date(update.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                        </span>
                       </div>
-                      <p className="update-card__action">
-                        Changed to <span style={{ color: STATUS_COLORS[update.status], fontWeight: 700 }}>{STATUS_LABELS[update.status]}</span>
-                      </p>
-                      <h4 className="update-card__title">
+                      <h3 className="update-card__title">
                         {update.title} <span className="update-card__id">({update.complaintId})</span>
-                      </h4>
+                      </h3>
+                      <p className="update-card__actor">
+                        Updated by <strong>{update.changedBy}</strong>
+                      </p>
                       {update.note && <p className="update-card__note">"{update.note}"</p>}
                     </div>
                   </Link>
@@ -575,7 +684,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="dashboard__empty">
-                <p>⏰ No status updates recorded today yet.</p>
+                <p>No status updates recorded today yet.</p>
               </div>
             )}
           </div>
@@ -584,28 +693,30 @@ const Dashboard = () => {
         {/* Field Worker Route */}
         {user?.role === ROLES.FIELD_WORKER && (
           <div className="dashboard__section span-full">
-            <h2>Today's Assigned Route</h2>
-            {route && route.waypoints.length > 0 ? (
+            <h2 className="dashboard-section-title">Today's Assigned Route</h2>
+            {route && route.waypoints?.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
                 {route.waypoints.map((wp, i) => (
                   <div key={i} className="update-card" style={{ borderLeft: '3px solid var(--accent-primary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', width: '100%' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-primary)', background: 'rgba(99,102,241,0.1)', padding: '2px 7px', borderRadius: '4px' }}>Stop {i + 1}</span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-primary)', background: 'rgba(239,68,68,0.1)', padding: '2px 7px', borderRadius: '4px' }}>Stop {i + 1}</span>
                       <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{wp.type}</span>
                     </div>
                     <p style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 4px 0' }}>{wp.address}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>{wp.completed ? '✅ Completed' : '🕒 Pending'}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>{wp.completed ? 'Completed' : 'Pending'}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="dashboard__empty"><p>No route assigned for today yet.</p></div>
+              <div className="dashboard__empty">
+                <p>No route scheduled for today.</p>
+              </div>
             )}
           </div>
         )}
       </div>
 
-      {/* ── Add Dustbin Modal ─────────────────────────── */}
+      {/* ── Dustbin Placement Modal ──────────────────────────── */}
       {showDustbinModal && (
         <div className="modal-overlay" onClick={() => setShowDustbinModal(false)}>
           <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
@@ -653,22 +764,34 @@ const Dashboard = () => {
   );
 };
 
-// ── KPI Card Component ─────────────────────────────────────────
-const KPICard = ({ icon, label, value, color, trend, trendUp }) => {
+// ── Refined Modern KPI Card Component ──────────────────────────
+const KPICard = ({ icon, label, value = 0, accentColor, trend, trendType = 'neutral' }) => {
   const count = useCountUp(value || 0);
+
+  const getTrendClass = () => {
+    if (trendType === 'optimal') return 'kpi-trend--optimal';
+    if (trendType === 'up') return 'kpi-trend--up';
+    if (trendType === 'down') return 'kpi-trend--down';
+    return 'kpi-trend--neutral';
+  };
+
   return (
-    <div className="kpi-card glass-card" style={{ '--kpi-color': color }}>
-      <div className="kpi-card__icon" style={{ color, background: `${color}18` }}>
-        {icon}
-      </div>
-      <div className="kpi-card__info">
-        <p className="kpi-card__value" style={{ color }}>{count.toLocaleString()}</p>
-        <p className="kpi-card__label">{label}</p>
+    <div className="kpi-card">
+      <div className="kpi-card__top">
+        <div className="kpi-card__icon" style={{ color: accentColor, background: `${accentColor}14` }}>
+          {icon}
+        </div>
         {trend && (
-          <p className={`kpi-trend ${trendUp === false ? 'kpi-trend--down' : trendUp ? 'kpi-trend--up' : ''}`}>
+          <span className={`kpi-trend ${getTrendClass()}`}>
+            {trendType === 'optimal' && <HiCheck style={{ fontSize: '11px', marginRight: 2 }} />}
             {trend}
-          </p>
+          </span>
         )}
+      </div>
+
+      <div className="kpi-card__body">
+        <span className="kpi-card__value">{count.toLocaleString()}</span>
+        <span className="kpi-card__label">{label}</span>
       </div>
     </div>
   );

@@ -110,6 +110,7 @@ export const NAV_ITEMS = {
     { label: 'My Complaints', path: '/complaints', icon: 'HiClipboardList' },
     { label: 'Rewards', path: '/rewards', icon: 'HiStar' },
     { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },
+    { label: 'Settings', path: '/settings', icon: 'HiCog' },
   ],
   [ROLES.SUPER_ADMIN]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'HiHome' },
@@ -128,6 +129,7 @@ export const NAV_ITEMS = {
     { label: 'My Team', path: '/workforce', icon: 'HiUsers' },
     { label: 'Analytics', path: '/analytics', icon: 'HiChartBar' },
     { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },
+    { label: 'Settings', path: '/settings', icon: 'HiCog' },
   ],
   [ROLES.SUPERVISOR]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'HiHome' },
@@ -135,17 +137,20 @@ export const NAV_ITEMS = {
     { label: 'Assigned Tasks', path: '/complaints', icon: 'HiClipboardList' },
     { label: 'My Workers', path: '/workforce', icon: 'HiUsers' },
     { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },
+    { label: 'Settings', path: '/settings', icon: 'HiCog' },
   ],
   [ROLES.FIELD_WORKER]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'HiHome' },
     { label: 'My Tasks', path: '/complaints', icon: 'HiClipboardList' },
     { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },
+    { label: 'Settings', path: '/settings', icon: 'HiCog' },
   ],
   [ROLES.WARD_COUNCILLOR]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'HiHome' },
     { label: 'Complaints', path: '/complaints', icon: 'HiClipboardList' },
     { label: 'Wards', path: '/wards', icon: 'HiMap' },
     { label: 'Announcements', path: '/announcements', icon: 'HiSpeakerphone' },
+    { label: 'Settings', path: '/settings', icon: 'HiCog' },
   ],
 };
 

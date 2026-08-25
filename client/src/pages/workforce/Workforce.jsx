@@ -172,8 +172,8 @@ const Workforce = () => {
                     <div
                       className="staff-avatar"
                       style={{
-                        background: `${ROLE_COLORS[member.role] || '#6366f1'}15`,
-                        color: ROLE_COLORS[member.role] || '#6366f1',
+                        background: `${ROLE_COLORS[member.role] || '#ef4444'}15`,
+                        color: ROLE_COLORS[member.role] || '#ef4444',
                       }}
                     >
                       {member.name.charAt(0).toUpperCase()}

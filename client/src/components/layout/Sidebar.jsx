@@ -38,7 +38,7 @@ const Sidebar = ({ collapsed, onToggle, mobileOpen, onCloseMobile }) => {
         <div className="sidebar__logo-icon">🏙️</div>
         {showExpanded && (
           <div className="sidebar__logo-text">
-            <h1>NAGARAM</h1>
+            <span className="sidebar__logo-brand">NAGARAM</span>
             <span>Smart City</span>
           </div>
         )}
@@ -77,7 +77,7 @@ const Sidebar = ({ collapsed, onToggle, mobileOpen, onCloseMobile }) => {
       {/* User Profile */}
       <div className="sidebar__footer">
         <div className="sidebar__user">
-          <div className="sidebar__avatar" style={{ borderColor: ROLE_COLORS[user?.role] || '#6366f1' }}>
+          <div className="sidebar__avatar" style={{ borderColor: ROLE_COLORS[user?.role] || 'var(--accent-primary)' }}>
             {user?.avatar ? (
               <img src={`http://localhost:5000${user.avatar}`} alt="User Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
             ) : (
@@ -86,7 +86,9 @@ const Sidebar = ({ collapsed, onToggle, mobileOpen, onCloseMobile }) => {
           </div>
           {showExpanded && (
             <div className="sidebar__user-info">
-              <p className="sidebar__user-name">{user?.name}</p>
+              <p className="sidebar__user-name" title={user?.name || 'Municipal Administrator'}>
+                {user?.name || 'Municipal Administrator'}
+              </p>
               <p className="sidebar__user-role" style={{ color: ROLE_COLORS[user?.role] }}>
                 {ROLE_LABELS[user?.role] || user?.role}
               </p>

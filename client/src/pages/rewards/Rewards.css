@@ -46,7 +46,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--bg-elevated);
   border: 4px solid var(--accent-primary-light);
   display: flex;
   flex-direction: column;
@@ -134,7 +134,7 @@
 }
 
 .badge-item--unlocked {
-  background: #ffffff;
+  background: var(--bg-elevated);
 }
 
 .badge-item--locked {
@@ -180,7 +180,7 @@
   padding: 10px var(--space-md);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  background: #ffffff;
+  background: var(--bg-elevated);
   transition: all var(--transition-fast);
 }
 

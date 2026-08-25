@@ -4,6 +4,7 @@ import L from 'leaflet';
 import { wardService, departmentService } from '../../services/dataService';
 import { HiPlus, HiPencil, HiTrash, HiX } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
+import Modal from '../../components/common/Modal';
 import './Wards.css';
 
 const mapPolygonCoords = (geojsonCoords) => {
@@ -235,130 +236,132 @@ const Wards = () => {
       )}
 
       {/* Councillor Profile Modal */}
-      {showCouncillorModal && selectedCouncillor && (
-        <div className="modal-overlay" onClick={() => setShowCouncillorModal(false)}>
-          <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Ward Councillor Profile</h2>
-              <button className="modal-close" onClick={() => setShowCouncillorModal(false)}><HiX /></button>
+      <Modal
+        isOpen={Boolean(showCouncillorModal && selectedCouncillor)}
+        onClose={() => setShowCouncillorModal(false)}
+        title="Ward Councillor Profile"
+        size="sm"
+        actions={
+          <button type="button" className="btn btn-secondary" onClick={() => setShowCouncillorModal(false)}>
+            Close
+          </button>
+        }
+      >
+        {selectedCouncillor && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Name</label>
+              <input type="text" value={selectedCouncillor.name} disabled />
             </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Name</label>
-                <input type="text" value={selectedCouncillor.name} disabled />
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input type="email" value={selectedCouncillor.email} disabled />
-              </div>
-              <div className="form-group">
-                <label>Phone</label>
-                <input type="tel" value={selectedCouncillor.phone || ''} disabled />
-              </div>
-              <div className="form-group">
-                <label>Department</label>
-                <input type="text" value={selectedCouncillor.department ? selectedCouncillor.department.name : 'No Department'} disabled />
-              </div>
-              {selectedCouncillor.role && (
-                <div className="form-group">
-                  <label>Role</label>
-                  <input type="text" value={selectedCouncillor.role} disabled />
-                </div>
-              )}
-              {selectedCouncillor.avatar && (
-                <div className="form-group">
-                  <label>Avatar</label>
-                  <img src={selectedCouncillor.avatar} alt="Avatar" style={{ width: '80px', borderRadius: '50%' }} />
-                </div>
-              )}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Email</label>
+              <input type="email" value={selectedCouncillor.email} disabled />
             </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Phone</label>
+              <input type="tel" value={selectedCouncillor.phone || ''} disabled />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Department</label>
+              <input type="text" value={selectedCouncillor.department ? selectedCouncillor.department.name : 'No Department'} disabled />
+            </div>
+            {selectedCouncillor.role && (
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Role</label>
+                <input type="text" value={selectedCouncillor.role} disabled />
+              </div>
+            )}
+            {selectedCouncillor.avatar && (
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Avatar</label>
+                <img src={selectedCouncillor.avatar} alt="Avatar" style={{ width: '80px', borderRadius: '50%' }} />
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
+
       {/* Ward Map Modal */}
-      {showWardMapModal && selectedWard && (
-        <div className="modal-overlay" onClick={() => setShowWardMapModal(false)}>
-          <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Ward Map - {selectedWard.name}</h2>
-              <button className="modal-close" onClick={() => setShowWardMapModal(false)}><HiX /></button>
+      <Modal
+        isOpen={Boolean(showWardMapModal && selectedWard)}
+        onClose={() => setShowWardMapModal(false)}
+        title={selectedWard ? `Ward Map - ${selectedWard.name}` : ''}
+        size="lg"
+      >
+        {selectedWard && (
+          <div style={{ height: '480px', width: '100%', borderRadius: '8px', overflow: 'hidden' }}>
+            {selectedWard.boundaries && selectedWard.boundaries.coordinates && (
+              <MapContainer
+                center={getPolygonCenter(mapPolygonCoords(selectedWard.boundaries.coordinates))}
+                zoom={13}
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <Polygon
+                  positions={mapPolygonCoords(selectedWard.boundaries.coordinates)}
+                  pathOptions={{ color: 'var(--accent-primary)', fillColor: 'var(--accent-primary)', fillOpacity: 0.15, weight: 2 }}
+                />
+                <FitBounds coords={mapPolygonCoords(selectedWard.boundaries.coordinates)} />
+              </MapContainer>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Add / Edit Ward Modal */}
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingId ? 'Edit Ward' : 'Create Ward'}
+        size="md"
+      >
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Ward Name</label>
+              <input type="text" name="name" value={form.name} onChange={handleInputChange} required placeholder="e.g. Indiranagar East" />
             </div>
-            <div className="modal-body" style={{ height: '500px' }}>
-              {selectedWard.boundaries && selectedWard.boundaries.coordinates && (
-                <MapContainer
-                  center={getPolygonCenter(mapPolygonCoords(selectedWard.boundaries.coordinates))}
-                  zoom={13}
-                  style={{ height: '100%', width: '100%' }}
-                >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Polygon
-                    positions={mapPolygonCoords(selectedWard.boundaries.coordinates)}
-                    pathOptions={{ color: 'var(--accent-primary)', fillColor: 'var(--accent-primary)', fillOpacity: 0.15, weight: 2 }}
-                  />
-                  <FitBounds coords={mapPolygonCoords(selectedWard.boundaries.coordinates)} />
-                </MapContainer>
-              )}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Ward Number</label>
+              <input type="number" name="number" value={form.number} onChange={handleInputChange} required placeholder="e.g. 4" disabled={!!editingId} />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Population Size (Optional)</label>
+              <input type="number" name="population" value={form.population} onChange={handleInputChange} placeholder="e.g. 45000" />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label style={{ marginBottom: '8px', display: 'block' }}>Active Departments in Ward</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', maxHeight: '160px', overflowY: 'auto' }}>
+                {departmentsList.map(dept => {
+                  const isChecked = form.departments.includes(dept._id);
+                  return (
+                    <label key={dept._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', padding: '6px 8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', userSelect: 'none', transition: 'all 0.15s ease' }}>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const updated = e.target.checked
+                            ? [...form.departments, dept._id]
+                            : form.departments.filter(id => id !== dept._id);
+                          setForm({ ...form, departments: updated });
+                        }}
+                        style={{ accentColor: 'var(--accent-primary)', width: '15px', height: '15px', cursor: 'pointer' }}
+                      />
+                      <span style={{ fontWeight: isChecked ? '600' : '400', color: isChecked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                        {dept.name}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      {/* Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-card animate-scale-in" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingId ? 'Edit Ward' : 'Create Ward'}</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><HiX /></button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label>Ward Name</label>
-                  <input type="text" name="name" value={form.name} onChange={handleInputChange} required placeholder="e.g. Indiranagar East" />
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label>Ward Number</label>
-                  <input type="number" name="number" value={form.number} onChange={handleInputChange} required placeholder="e.g. 4" disabled={!!editingId} />
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label>Population Size (Optional)</label>
-                  <input type="number" name="population" value={form.population} onChange={handleInputChange} placeholder="e.g. 45000" />
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ marginBottom: '8px', display: 'block' }}>Active Departments in Ward</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', maxHeight: '160px', overflowY: 'auto' }}>
-                    {departmentsList.map(dept => {
-                      const isChecked = form.departments.includes(dept._id);
-                      return (
-                        <label key={dept._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', padding: '6px 8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', userSelect: 'none', transition: 'all 0.15s ease' }}>
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              const updated = e.target.checked
-                                ? [...form.departments, dept._id]
-                                : form.departments.filter(id => id !== dept._id);
-                              setForm({ ...form, departments: updated });
-                            }}
-                            style={{ accentColor: 'var(--accent-primary)', width: '15px', height: '15px', cursor: 'pointer' }}
-                          />
-                          <span style={{ fontWeight: isChecked ? '600' : '400', color: isChecked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                            {dept.name}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-              <div className="modal-actions" style={{ marginTop: 0 }}>
-                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn-submit">{editingId ? 'Save Changes' : 'Create Ward'}</button>
-              </div>
-            </form>
+          <div className="modal-actions" style={{ padding: '14px 0 0 0', margin: '16px 0 0 0', background: 'transparent' }}>
+            <button type="button" className="btn btn-secondary btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary btn-submit">{editingId ? 'Save Changes' : 'Create Ward'}</button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </div>
   );
 };

@@ -1,4 +1,9 @@
 const logger = (req, res, next) => {
+  // Skip logging CORS preflight OPTIONS requests to prevent console clutter
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;

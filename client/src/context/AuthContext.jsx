@@ -17,23 +17,29 @@ export const AuthProvider = ({ children }) => {
   // Check for existing token on mount
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('nagaram_token');
-      const savedUser = localStorage.getItem('nagaram_user');
+      try {
+        const token = localStorage.getItem('nagaram_token');
+        const savedUser = localStorage.getItem('nagaram_user');
 
-      if (token && savedUser) {
-        try {
-          setUser(JSON.parse(savedUser));
-          // Verify token is still valid
-          const res = await authService.getMe();
-          setUser(res.data.user);
-          localStorage.setItem('nagaram_user', JSON.stringify(res.data.user));
-        } catch {
-          localStorage.removeItem('nagaram_token');
-          localStorage.removeItem('nagaram_user');
-          setUser(null);
+        if (token && savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
+          try {
+            setUser(JSON.parse(savedUser));
+            const res = await authService.getMe();
+            if (res.data?.user) {
+              setUser(res.data.user);
+              localStorage.setItem('nagaram_user', JSON.stringify(res.data.user));
+            }
+          } catch {
+            localStorage.removeItem('nagaram_token');
+            localStorage.removeItem('nagaram_user');
+            setUser(null);
+          }
         }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initAuth();

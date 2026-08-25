@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Polygon, useMapEvents } from 'react-leaflet';
 import { complaintService } from '../../services/dataService';
@@ -24,10 +24,16 @@ const ReportComplaint = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  // Camera State
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [mediaStream, setMediaStream] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
   // Form State
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
-  const [gpsCoordinates, setGpsCoordinates] = useState({ lat: 12.9716, lng: 77.5946 }); // Default Bangalore coordinates
+  const [gpsCoordinates, setGpsCoordinates] = useState({ lat: 13.0827, lng: 80.2707 }); // Default Chennai coordinates
   const [address, setAddress] = useState('Locating...');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,11 +54,11 @@ const ReportComplaint = () => {
           reverseGeocode(coords.lat, coords.lng);
         },
         () => {
-          reverseGeocode(12.9716, 77.5946); // fallback
+          reverseGeocode(13.0827, 80.2707); // Chennai fallback
         }
       );
     } else {
-      reverseGeocode(12.9716, 77.5946);
+      reverseGeocode(13.0827, 80.2707);
     }
   }, []);
 
@@ -92,6 +98,66 @@ const ReportComplaint = () => {
       setAddress(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
     }
   };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      setMediaStream(stream);
+      setIsCameraOpen(true);
+    } catch (err) {
+      toast.error('Unable to access camera. Please check permissions.');
+      console.error(err);
+    }
+  };
+
+  const stopCamera = useCallback(() => {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      setMediaStream(null);
+    }
+    setIsCameraOpen(false);
+  }, [mediaStream]);
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          if (images.length >= 5) {
+            toast.error('You can upload a maximum of 5 images');
+            stopCamera();
+            return;
+          }
+          setImages([...images, file]);
+          const newPreview = URL.createObjectURL(file);
+          setImagePreviews([...imagePreviews, newPreview]);
+          toast.success('Photo captured!');
+          stopCamera();
+        }
+      }, 'image/jpeg', 0.8);
+    }
+  };
+
+  useEffect(() => {
+    if (isCameraOpen && videoRef.current && mediaStream) {
+      videoRef.current.srcObject = mediaStream;
+    }
+  }, [isCameraOpen, mediaStream]);
+
+  useEffect(() => {
+    return () => {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [mediaStream]);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -188,21 +254,46 @@ const ReportComplaint = () => {
             <h2>Add Pictures of the Issue</h2>
             <p className="step-content__desc">Upload up to 5 clear images. This helps the AI categorize and route the complaint faster.</p>
 
-            <div className="upload-zone">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageChange}
-                id="file-upload"
-                className="sr-only"
-              />
-              <label htmlFor="file-upload" className="upload-zone__label">
-                <div className="upload-zone__icon">📸</div>
-                <p className="upload-zone__text">Click to browse or drag and drop images here</p>
-                <span className="upload-zone__limit">JPG, PNG, WebP up to 5MB (Max 5 files)</span>
-              </label>
-            </div>
+            {isCameraOpen ? (
+              <div className="camera-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', background: '#000', padding: '16px', borderRadius: '12px' }}>
+                <video ref={videoRef} autoPlay playsInline style={{ width: '100%', maxHeight: '400px', borderRadius: '8px', objectFit: 'cover' }} />
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
+                <div style={{ display: 'flex', gap: '16px', width: '100%', justifyContent: 'center' }}>
+                  <button type="button" onClick={capturePhoto} style={{ padding: '12px 24px', background: 'var(--status-resolved)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <HiCamera /> Capture
+                  </button>
+                  <button type="button" onClick={stopCamera} style={{ padding: '12px 24px', background: 'var(--status-error)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: 1 }}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="upload-zone-container" style={{ display: 'flex', gap: '16px' }}>
+                <div className="upload-zone" style={{ flex: 1 }}>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    id="file-upload"
+                    className="sr-only"
+                  />
+                  <label htmlFor="file-upload" className="upload-zone__label">
+                    <div className="upload-zone__icon">📁</div>
+                    <p className="upload-zone__text">Browse Images</p>
+                    <span className="upload-zone__limit">Choose from gallery</span>
+                  </label>
+                </div>
+
+                <div className="upload-zone" style={{ flex: 1, cursor: 'pointer' }} onClick={startCamera}>
+                  <div className="upload-zone__label">
+                    <div className="upload-zone__icon">📸</div>
+                    <p className="upload-zone__text">Take Photo</p>
+                    <span className="upload-zone__limit">Use webcam directly</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {imagePreviews.length > 0 && (
               <div className="previews-grid">

@@ -1,9 +1,36 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { HiMail, HiLockClosed, HiEye, HiEyeOff } from 'react-icons/hi';
+import { HiMail, HiLockClosed, HiEye, HiEyeOff, HiLightningBolt } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import './Auth.css';
+
+const DEMO_PROFILES = [
+  { group: 'Core Platform', items: [
+    { label: 'Super Admin — admin@nagaram.city', email: 'admin@nagaram.city', pass: 'Admin@123' },
+    { label: 'Citizen — citizen@nagaram.city', email: 'citizen@nagaram.city', pass: 'Citizen@123' },
+  ]},
+  { group: 'Waste Management Department', items: [
+    { label: 'Karan Malhotra (Manager)', email: 'waste.manager@nagaram.city', pass: 'Manager@123' },
+    { label: 'Rajesh Kumar (Supervisor)', email: 'waste.supervisor@nagaram.city', pass: 'Supervisor@123' },
+    { label: 'Madan Lal (Field Worker)', email: 'waste.worker@nagaram.city', pass: 'Worker@123' },
+  ]},
+  { group: 'Roads Department', items: [
+    { label: 'Sunita Rao (Manager)', email: 'roads.manager@nagaram.city', pass: 'Manager@123' },
+    { label: 'Vikram Singh (Supervisor)', email: 'roads.supervisor@nagaram.city', pass: 'Supervisor@123' },
+    { label: 'Gopal Dutt (Field Worker)', email: 'roads.worker@nagaram.city', pass: 'Worker@123' },
+  ]},
+  { group: 'Water Supply Department', items: [
+    { label: 'Alok Gupta (Manager)', email: 'water.manager@nagaram.city', pass: 'Manager@123' },
+    { label: 'Sanjay Dutt (Supervisor)', email: 'water.supervisor@nagaram.city', pass: 'Supervisor@123' },
+    { label: 'Ramesh Pal (Field Worker)', email: 'water.worker@nagaram.city', pass: 'Worker@123' },
+  ]},
+  { group: 'Electrical Department', items: [
+    { label: 'Neha Joshi (Manager)', email: 'power.manager@nagaram.city', pass: 'Manager@123' },
+    { label: 'Anil Sharma (Supervisor)', email: 'power.supervisor@nagaram.city', pass: 'Supervisor@123' },
+    { label: 'Vijay Ram (Field Worker)', email: 'power.worker@nagaram.city', pass: 'Worker@123' },
+  ]},
+];
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -13,23 +40,44 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email || !password) {
-      toast.error('Please fill in all fields');
+  const handleLoginSubmit = async (emailToUse, passwordToUse) => {
+    const targetEmail = (emailToUse || email).trim();
+    const targetPass = passwordToUse || password;
+
+    if (!targetEmail || !targetPass) {
+      toast.error('Please enter both email and password');
       return;
     }
 
     setLoading(true);
     try {
-      await login(email, password);
+      await login(targetEmail, targetPass);
       toast.success('Welcome to Nagaram!');
       navigate('/dashboard');
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    handleLoginSubmit();
+  };
+
+  const handleQuickDemo = (demoEmail, demoPass) => {
+    setEmail(demoEmail);
+    setPassword(demoPass);
+    handleLoginSubmit(demoEmail, demoPass);
+  };
+
+  const handleDropdownSelect = (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    const [demoEmail, demoPass] = val.split('|');
+    setEmail(demoEmail);
+    setPassword(demoPass);
   };
 
   return (
@@ -50,7 +98,7 @@ const Login = () => {
         </div>
 
         {/* Form */}
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleFormSubmit}>
           <h2 className="auth-form__title">Welcome Back</h2>
           <p className="auth-form__desc">Sign in to your account to continue</p>
 
@@ -88,6 +136,7 @@ const Login = () => {
                 className="auth-toggle-pwd"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <HiEyeOff /> : <HiEye />}
               </button>
@@ -106,72 +155,63 @@ const Login = () => {
             )}
           </button>
 
-          {/* Quick Demo Login */}
+          {/* Quick Demo Login Section */}
           <div className="auth-demo-section">
-            <p className="auth-demo-title">⚡ Quick Demo Login Profiles</p>
-            <div className="auth-demo-selector-group">
-              <select
-                className="auth-demo-select"
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (!val) return;
-                  const [demoEmail, demoPass] = val.split('|');
-                  setEmail(demoEmail);
-                  setPassword(demoPass);
-                }}
-                value={email ? `${email}|${password}` : ""}
+            <p className="auth-demo-title" id="demo-profiles-label">
+              <HiLightningBolt style={{ color: 'var(--accent-primary)', verticalAlign: 'middle', marginRight: 4 }} />
+              Quick demo login (1-Click)
+            </p>
+
+            {/* 1-Click Fast Action Chips */}
+            <div className="auth-quick-chips" role="group" aria-labelledby="demo-profiles-label">
+              <button
+                type="button"
+                className="auth-chip"
+                disabled={loading}
+                onClick={() => handleQuickDemo('admin@nagaram.city', 'Admin@123')}
+                title="Login as Super Admin"
               >
-                <option value="" disabled>Select Demo Profile to Auto-fill...</option>
-                <optgroup label="Core Platform">
-                  <option value="admin@nagaram.city|Admin@123">Super Admin — admin@nagaram.city (Admin@123)</option>
-                  <option value="citizen@nagaram.city|Citizen@123">Rohan Sharma (Citizen) — citizen@nagaram.city (Citizen@123)</option>
-                </optgroup>
-                <optgroup label="Waste Management Department">
-                  <option value="waste.manager@nagaram.city|Manager@123">Karan Malhotra (Manager) — waste.manager@nagaram.city (Manager@123)</option>
-                  <option value="waste.supervisor@nagaram.city|Supervisor@123">Rajesh Kumar (Supervisor) — waste.supervisor@nagaram.city (Supervisor@123)</option>
-                  <option value="waste.worker@nagaram.city|Worker@123">Madan Lal (Field Worker) — waste.worker@nagaram.city (Worker@123)</option>
-                </optgroup>
-                <optgroup label="Roads Department">
-                  <option value="roads.manager@nagaram.city|Manager@123">Sunita Rao (Manager) — roads.manager@nagaram.city (Manager@123)</option>
-                  <option value="roads.supervisor@nagaram.city|Supervisor@123">Vikram Singh (Supervisor) — roads.supervisor@nagaram.city (Supervisor@123)</option>
-                  <option value="roads.worker@nagaram.city|Worker@123">Gopal Dutt (Field Worker) — roads.worker@nagaram.city (Worker@123)</option>
-                </optgroup>
-                <optgroup label="Water Supply Department">
-                  <option value="water.manager@nagaram.city|Manager@123">Alok Gupta (Manager) — water.manager@nagaram.city (Manager@123)</option>
-                  <option value="water.supervisor@nagaram.city|Supervisor@123">Sanjay Dutt (Supervisor) — water.supervisor@nagaram.city (Supervisor@123)</option>
-                  <option value="water.worker@nagaram.city|Worker@123">Ramesh Pal (Field Worker) — water.worker@nagaram.city (Worker@123)</option>
-                </optgroup>
-                <optgroup label="Electrical Department">
-                  <option value="power.manager@nagaram.city|Manager@123">Neha Joshi (Manager) — power.manager@nagaram.city (Manager@123)</option>
-                  <option value="power.supervisor@nagaram.city|Supervisor@123">Anil Sharma (Supervisor) — power.supervisor@nagaram.city (Supervisor@123)</option>
-                  <option value="power.worker@nagaram.city|Worker@123">Vijay Ram (Field Worker) — power.worker@nagaram.city (Worker@123)</option>
-                </optgroup>
-              </select>
+                Super Admin
+              </button>
+              <button
+                type="button"
+                className="auth-chip"
+                disabled={loading}
+                onClick={() => handleQuickDemo('citizen@nagaram.city', 'Citizen@123')}
+                title="Login as Citizen"
+              >
+                Citizen
+              </button>
+              <button
+                type="button"
+                className="auth-chip"
+                disabled={loading}
+                onClick={() => handleQuickDemo('waste.manager@nagaram.city', 'Manager@123')}
+                title="Login as Waste Dept Manager"
+              >
+                Dept Manager
+              </button>
             </div>
 
-            {/* Quick action chips */}
-            <div className="auth-quick-chips">
-              <button
-                type="button"
-                className="auth-chip"
-                onClick={() => { setEmail('admin@nagaram.city'); setPassword('Admin@123'); }}
+            {/* Full Role Dropdown for all municipal personas */}
+            <div className="auth-demo-selector-group" style={{ marginTop: '8px' }}>
+              <select
+                className="auth-demo-select"
+                onChange={handleDropdownSelect}
+                value={email && password ? `${email}|${password}` : ""}
+                aria-label="Select Demo Profile to Fill"
               >
-                👑 Super Admin
-              </button>
-              <button
-                type="button"
-                className="auth-chip"
-                onClick={() => { setEmail('citizen@nagaram.city'); setPassword('Citizen@123'); }}
-              >
-                👤 Citizen
-              </button>
-              <button
-                type="button"
-                className="auth-chip"
-                onClick={() => { setEmail('waste.manager@nagaram.city'); setPassword('Manager@123'); }}
-              >
-                🏢 Dept Manager
-              </button>
+                <option value="" disabled>Or select any municipal role...</option>
+                {DEMO_PROFILES.map((group, gIdx) => (
+                  <optgroup key={gIdx} label={group.group}>
+                    {group.items.map((item, iIdx) => (
+                      <option key={iIdx} value={`${item.email}|${item.pass}`}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
             </div>
           </div>
 

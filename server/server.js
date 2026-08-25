@@ -22,6 +22,9 @@ const routeRoutes = require('./routes/route.routes');
 
 const app = express();
 
+// Disable ETags for dynamic REST APIs so queries always return fresh data
+app.set('etag', false);
+
 // =============================================
 // Middleware
 // =============================================
@@ -39,6 +42,12 @@ app.use(cors({
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Prevent caching for API responses
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
 
 // Rate limiting
 app.use('/api/', apiLimiter);
@@ -85,13 +94,10 @@ app.use((req, res) => {
 // Start Server
 // =============================================
 
-const seed = require('./config/seed');
-
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB();
-  await seed();
   app.listen(PORT, () => {
     console.log(`\n🏙️  NAGARAM Server running on port ${PORT}`);
     console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);

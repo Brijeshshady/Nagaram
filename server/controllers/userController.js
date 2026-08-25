@@ -6,7 +6,7 @@ const { ROLES } = require('../config/permissions');
  */
 const getUsers = async (req, res, next) => {
   try {
-    const { role, department, ward, isActive, page = 1, limit = 20 } = req.query;
+    const { role, department, ward, isActive, page = 1, limit = 1000 } = req.query;
 
     const filter = {};
     if (role) filter.role = role;
@@ -19,13 +19,16 @@ const getUsers = async (req, res, next) => {
       filter.department = req.user.department;
     }
 
+    const parsedLimit = parseInt(limit) || 1000;
+    const parsedPage = parseInt(page) || 1;
+
     const users = await User.find(filter)
       .select('-password')
       .populate('department', 'name code')
       .populate('ward', 'name number')
       .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit));
+      .limit(parsedLimit)
+      .skip((parsedPage - 1) * parsedLimit);
 
     const total = await User.countDocuments(filter);
 
@@ -33,8 +36,8 @@ const getUsers = async (req, res, next) => {
       users,
       pagination: {
         total,
-        page: parseInt(page),
-        pages: Math.ceil(total / parseInt(limit)),
+        page: parsedPage,
+        pages: Math.ceil(total / parsedLimit),
       },
     });
   } catch (error) {
@@ -49,19 +52,20 @@ const createUser = async (req, res, next) => {
   try {
     const { name, email, phone, password, role, department, ward } = req.body;
 
-    const existing = await User.findOne({ email });
+    const normalizedEmail = (email || '').toLowerCase().trim();
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
     const user = await User.create({
-      name,
-      email,
-      phone,
+      name: name?.trim(),
+      email: normalizedEmail,
+      phone: phone?.trim(),
       password,
       role: role || ROLES.CITIZEN,
-      department,
-      ward,
+      department: department && department !== '' ? department : undefined,
+      ward: ward && ward !== '' ? ward : undefined,
     });
 
     res.status(201).json({
@@ -98,19 +102,20 @@ const getUserById = async (req, res, next) => {
  */
 const updateUser = async (req, res, next) => {
   try {
-    const { name, phone, role, department, ward, isActive } = req.body;
+    const { name, phone, role, department, ward, isActive, password } = req.body;
 
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
+    if (name) user.name = name.trim();
+    if (phone) user.phone = phone.trim();
     if (role) user.role = role;
-    if (department !== undefined) user.department = department || null;
-    if (ward !== undefined) user.ward = ward || null;
+    if (department !== undefined) user.department = department && department !== '' ? department : null;
+    if (ward !== undefined) user.ward = ward && ward !== '' ? ward : null;
     if (isActive !== undefined) user.isActive = isActive;
+    if (password) user.password = password;
 
     await user.save();
 

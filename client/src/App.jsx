@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthGuard, GuestGuard, RoleGuard } from './guards/RoleGuard';
 import { ROLES } from './utils/constants';
 
@@ -52,7 +53,8 @@ import './styles/global.css';
 
 function App() {
   return (
-    <AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
       <Router>
         <Routes>
           {/* Public Routes */}
@@ -110,21 +112,23 @@ function App() {
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#1a2035',
-            color: '#f1f5f9',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-color)',
             borderRadius: '10px',
             fontFamily: 'Inter, sans-serif',
+            boxShadow: 'var(--shadow-md)',
           },
           success: {
-            iconTheme: { primary: '#10b981', secondary: '#1a2035' },
+            iconTheme: { primary: '#10b981', secondary: 'var(--bg-elevated)' },
           },
           error: {
-            iconTheme: { primary: '#ef4444', secondary: '#1a2035' },
+            iconTheme: { primary: '#ef4444', secondary: 'var(--bg-elevated)' },
           },
         }}
       />
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -3,6 +3,7 @@ import { departmentService, userService } from '../../services/dataService';
 import { ROLES } from '../../utils/constants';
 import { HiPlus, HiPencil, HiTrash, HiX } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
+import Modal from '../../components/common/Modal';
 import './Departments.css';
 
 const Departments = () => {
@@ -114,13 +115,26 @@ const Departments = () => {
             <div key={d._id} className="dept-card glass-card">
               <div className="dept-card__header">
                 <div>
-                  <h3>{d.name}</h3>
-                  <span className="dept-card__code">{d.code}</span>
+                  <h2 className="dept-card__title">{d.name}</h2>
                 </div>
                 <div className="dept-card__actions">
-                  <button onClick={() => handleOpenEdit(d)} title="Edit"><HiPencil /></button>
+                  <button
+                    onClick={() => handleOpenEdit(d)}
+                    title="Edit Department"
+                    aria-label={`Edit ${d.name}`}
+                    className="dept-action-btn"
+                  >
+                    <HiPencil />
+                  </button>
                   {d.isActive !== false && (
-                    <button onClick={() => handleDelete(d._id)} title="Deactivate" className="btn-delete"><HiTrash /></button>
+                    <button
+                      onClick={() => handleDelete(d._id)}
+                      title="Deactivate Department"
+                      aria-label={`Deactivate ${d.name}`}
+                      className="dept-action-btn dept-action-btn--delete"
+                    >
+                      <HiTrash />
+                    </button>
                   )}
                 </div>
               </div>
@@ -146,15 +160,13 @@ const Departments = () => {
                   <p className="manager-name">{d.managerId?.name || 'Unassigned'}</p>
                 </div>
 
-                {d.connectedPersonnel && d.connectedPersonnel.length > 0 && (
-                  <button
-                    type="button"
-                    className="btn-view-roster"
-                    onClick={() => setSelectedDeptStaff(d)}
-                  >
-                    View Roster →
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="btn-view-roster"
+                  onClick={() => setSelectedDeptStaff(d)}
+                >
+                  View Roster ({d.connectedPersonnel?.length || 0}) →
+                </button>
               </div>
             </div>
           ))}
@@ -162,76 +174,80 @@ const Departments = () => {
       )}
 
       {/* Staff Roster Modal */}
-      {selectedDeptStaff && (
-        <div className="modal-overlay">
-          <div className="modal-card animate-scale-in">
-            <div className="modal-header">
-              <h2>👥 Connected Roster — {selectedDeptStaff.name}</h2>
-              <button className="modal-close" onClick={() => setSelectedDeptStaff(null)}><HiX /></button>
-            </div>
-            <div style={{ padding: '20px' }}>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                All supervisors and field workers connected to <b>{selectedDeptStaff.name}</b>:
-              </p>
-              <div className="roster-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-                {selectedDeptStaff.connectedPersonnel.map((p) => (
+      <Modal
+        isOpen={Boolean(selectedDeptStaff)}
+        onClose={() => setSelectedDeptStaff(null)}
+        title={selectedDeptStaff ? `👥 Connected Roster — ${selectedDeptStaff.name}` : ''}
+        size="md"
+        actions={
+          <button type="button" className="btn btn-secondary" onClick={() => setSelectedDeptStaff(null)}>
+            Close
+          </button>
+        }
+      >
+        {selectedDeptStaff && (
+          <div>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+              All supervisors and field workers connected to <b>{selectedDeptStaff.name}</b>:
+            </p>
+            <div className="roster-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+              {selectedDeptStaff.connectedPersonnel && selectedDeptStaff.connectedPersonnel.length > 0 ? (
+                selectedDeptStaff.connectedPersonnel.map((p) => (
                   <div key={p._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                     <div>
                       <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>{p.name}</span>
                       <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>{p.email} • {p.phone || 'No phone'}</p>
                     </div>
-                    <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-primary)', textTransform: 'capitalize' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--accent-primary)', textTransform: 'capitalize' }}>
                       {p.role.replace(/_/g, ' ')}
                     </span>
                   </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                <button type="button" className="btn-cancel" onClick={() => setSelectedDeptStaff(null)}>Close</button>
-              </div>
+                ))
+              ) : (
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                  No workforce personnel currently assigned to this department.
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-card animate-scale-in">
-            <div className="modal-header">
-              <h2>{editingId ? 'Edit Department' : 'Create Department'}</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><HiX /></button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Department Name</label>
-                <input type="text" name="name" value={form.name} onChange={handleInputChange} required placeholder="e.g. Roads Maintenance" />
-              </div>
-              <div className="form-group">
-                <label>Unique Code</label>
-                <input type="text" name="code" value={form.code} onChange={handleInputChange} required placeholder="e.g. roads" disabled={!!editingId} />
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea name="description" value={form.description} onChange={handleInputChange} rows="3" placeholder="Define scopes and routing rules..." />
-              </div>
-              <div className="form-group">
-                <label>Department Manager</label>
-                <select name="managerId" value={form.managerId} onChange={handleInputChange}>
-                  <option value="">Select Manager...</option>
-                  {managers.map((m) => (
-                    <option key={m._id} value={m._id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn-submit">{editingId ? 'Save Changes' : 'Create Department'}</button>
-              </div>
-            </form>
+      {/* Add / Edit Department Modal */}
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingId ? 'Edit Department' : 'Create Department'}
+        size="md"
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Department Name</label>
+            <input type="text" name="name" value={form.name} onChange={handleInputChange} required placeholder="e.g. Roads Maintenance" />
           </div>
-        </div>
-      )}
+          <div className="form-group">
+            <label>Unique Code</label>
+            <input type="text" name="code" value={form.code} onChange={handleInputChange} required placeholder="e.g. roads" disabled={!!editingId} />
+          </div>
+          <div className="form-group">
+            <label>Description</label>
+            <textarea name="description" value={form.description} onChange={handleInputChange} rows="3" placeholder="Define scopes and routing rules..." />
+          </div>
+          <div className="form-group">
+            <label>Department Manager</label>
+            <select name="managerId" value={form.managerId} onChange={handleInputChange}>
+              <option value="">Select Manager...</option>
+              {managers.map((m) => (
+                <option key={m._id} value={m._id}>{m.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="modal-actions" style={{ padding: '14px 0 0 0', margin: '14px 0 0 0', background: 'transparent' }}>
+            <button type="button" className="btn btn-secondary btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary btn-submit">{editingId ? 'Save Changes' : 'Create Department'}</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

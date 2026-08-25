@@ -183,14 +183,14 @@ const ComplaintDetail = () => {
             </div>
 
             {/* GPS Location Map */}
-            {complaint.gpsCoordinates?.lat && complaint.gpsCoordinates?.lng && (
+            {complaint.gpsCoordinates && !isNaN(parseFloat(complaint.gpsCoordinates.lat)) && !isNaN(parseFloat(complaint.gpsCoordinates.lng)) && (
               <div className="complaint-detail__map-section">
                 <p className="complaint-detail__map-label">
                   📍 Location on Map
                 </p>
                 <div className="complaint-detail__map-wrapper">
                   <MapContainer
-                    center={[complaint.gpsCoordinates.lat, complaint.gpsCoordinates.lng]}
+                    center={[parseFloat(complaint.gpsCoordinates.lat), parseFloat(complaint.gpsCoordinates.lng)]}
                     zoom={16}
                     style={{ height: '100%', width: '100%' }}
                     zoomControl={true}
@@ -198,7 +198,7 @@ const ComplaintDetail = () => {
                   >
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     <CircleMarker
-                      center={[complaint.gpsCoordinates.lat, complaint.gpsCoordinates.lng]}
+                      center={[parseFloat(complaint.gpsCoordinates.lat), parseFloat(complaint.gpsCoordinates.lng)]}
                       radius={10}
                       pathOptions={{
                         fillColor: STATUS_COLORS[complaint.status] || '#EF4444',

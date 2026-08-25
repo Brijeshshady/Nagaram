@@ -10,8 +10,8 @@ export const RoleGuard = ({ children, roles }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center" style={{ height: '100vh' }}>
-        <div className="animate-spin" style={{ width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%' }} />
+      <div className="page-loading-screen">
+        <div className="animate-spin" />
       </div>
     );
   }
@@ -40,7 +40,13 @@ export const AuthGuard = ({ children }) => {
 export const GuestGuard = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="page-loading-screen">
+        <div className="animate-spin" />
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;

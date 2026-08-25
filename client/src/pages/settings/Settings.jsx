@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { userService } from '../../services/dataService';
 import api from '../../services/api';
 import { ROLES, ROLE_LABELS } from '../../utils/constants';
@@ -11,6 +12,7 @@ import './Settings.css';
 
 const Settings = () => {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar ? `http://localhost:5000${user.avatar}` : '');
   const [myWard, setMyWard] = useState(null);
@@ -103,6 +105,49 @@ const Settings = () => {
       </div>
 
       <div className="settings__grid">
+        {/* Appearance Card — full width */}
+        <div className="settings-card glass-card span-2">
+          <h2>🎨 Appearance &amp; Theme</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-sm)', marginBottom: 'var(--space-lg)', marginTop: '-8px' }}>
+            Preference saved automatically and applied across all sessions.
+          </p>
+          <div className="theme-picker">
+            <button
+              className={`theme-option ${theme === 'dark' ? 'theme-option--active' : ''}`}
+              onClick={() => setTheme('dark')}
+              aria-label="Dark mode"
+            >
+              <div className="theme-preview-swatch theme-preview-swatch--dark">
+                <div className="swatch-bar" />
+                <div className="swatch-bar swatch-bar--short" />
+                <div className="swatch-bar" />
+              </div>
+              <div className="theme-option__label">
+                <span className="theme-option__icon">🌙</span>
+                <span>Dark Mode</span>
+                {theme === 'dark' && <span className="theme-option__badge">Active</span>}
+              </div>
+            </button>
+
+            <button
+              className={`theme-option ${theme === 'light' ? 'theme-option--active' : ''}`}
+              onClick={() => setTheme('light')}
+              aria-label="Light mode"
+            >
+              <div className="theme-preview-swatch theme-preview-swatch--light">
+                <div className="swatch-bar swatch-bar--lm" />
+                <div className="swatch-bar swatch-bar--lm swatch-bar--short" />
+                <div className="swatch-bar swatch-bar--lm" />
+              </div>
+              <div className="theme-option__label">
+                <span className="theme-option__icon">☀️</span>
+                <span>Light Mode</span>
+                {theme === 'light' && <span className="theme-option__badge">Active</span>}
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Profile Card */}
         <div className="settings-card glass-card">
           <h2><HiUser /> Profile Information</h2>
